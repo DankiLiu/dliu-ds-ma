@@ -22,3 +22,29 @@ def corenlp_server_start(path_to_jar=None,
 def corenlp_server_stop(server):
     server.stop()
     print("Corenlp server stopped...")
+
+
+def server_is_running(url):
+    try:
+        page = requests.get(url)
+        status_code = page.status_code
+    except Exception as e:
+        print(e)
+        return False
+    print(f"status code from {url} is {status_code}")
+    if status_code == 200:
+        print("server running, ready to parse")
+        return True
+    else:
+        print("server not running")
+        return False
+
+
+def read_jointslu_labels():
+
+    return None
+
+
+def set_jointslu_labels(new_labels):
+    data = {"jointslu_labels": new_labels}
+    json.dump(data, "jointslu.json")
