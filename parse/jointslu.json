@@ -1,0 +1,24 @@
+{
+    "jointslu_labels": [
+        "cost_relative",
+        "depart_date.day_number",
+        "fare_amount",
+        "toloc.state_name",
+        "depart_date.month_name",
+        "depart_time.time",
+        "meal_description",
+        "arrive_time.time",
+        "arrive_date.month_name",
+        "depart_date.day_name",
+        "arrive_time.time_relative",
+        "toloc.city_name",
+        "toloc.state_code",
+        "round_trip",
+        "airline_name",
+        "fromloc.city_name",
+        "depart_time.time_relative",
+        "stoploc.city_name",
+        "arrive_date.day_number",
+        "depart_time.period_of_day"
+    ]
+}

@@ -1,21 +1,24 @@
 import parse.util as util
-from data.data_processing import jointslu_per_line
-from parse.nltk_parser import dependency_parsing
+from data.data_processing import jointslu_per_line, \
+    read_jointslu_by_line, find_all_labels
+import parse.nltk_parser as np
 
 
 def corenlp_parse(text):
-    # start server
-    # server = util.corenlp_server_start()
-    # parse each sentence
+    # pos parsing
+    np.part_of_speech_parsing(text=text)
+    # ner parsing
+    np.name_entity_recognition(text=text)
+    # dependency parsing
+    np.dependency_parsing(text=text)
 
-    dependency_parsing(text=text)
-    # stop server
-    # util.corenlp_server_stop(server)
 
-
-def main():
-    with open("../data/sample.iob") as f:
-        lines = f.readlines()
+def parse():
+    # Start server if not started
+    if not util.server_is_running("http://localhost:9000/"):
+        util.corenlp_server_start()
+    dataset_path = "../data/sample.iob"
+    lines = read_jointslu_by_line(dataset_path)
 
     for line in lines:
         sentence, words, labels = jointslu_per_line(line)
@@ -23,7 +26,25 @@ def main():
         print(f"words    {words}")
         print(f"labels   {labels}")
         corenlp_parse(sentence)
-        break
+        if_continue = input("press enter to continue, 'n' to stop")
+        if if_continue == "":
+            continue
+        else:
+            break
+
+
+def main():
+    # read the file
+    dataset_path = "../data/sample.iob"
+    lines = read_jointslu_by_line(dataset_path)
+    # get the labels
+    labels_l = []
+    for line in lines:
+        _, _, labels = jointslu_per_line(line)
+        labels_l.append(labels)
+    # save the labels into file
+    find_all_labels(labels_l)
+
 
 if __name__ == '__main__':
     main()
