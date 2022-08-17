@@ -1,5 +1,6 @@
 import parse.util as util
-from data.data_processing import jointslu_per_line
+from data.data_processing import jointslu_per_line, \
+    read_jointslu_by_line, find_all_labels
 import parse.nltk_parser as np
 
 
@@ -12,15 +13,12 @@ def corenlp_parse(text):
     np.dependency_parsing(text=text)
 
 
-def main():
+def parse():
     # Start server if not started
-    import os
-    os.environ['JAVAHOME'] = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
     if not util.server_is_running("http://localhost:9000/"):
         util.corenlp_server_start()
-
-    with open("../data/sample.iob") as f:
-        lines = f.readlines()
+    dataset_path = "../data/sample.iob"
+    lines = read_jointslu_by_line(dataset_path)
 
     for line in lines:
         sentence, words, labels = jointslu_per_line(line)
@@ -33,6 +31,19 @@ def main():
             continue
         else:
             break
+
+
+def main():
+    # read the file
+    dataset_path = "../data/sample.iob"
+    lines = read_jointslu_by_line(dataset_path)
+    # get the labels
+    labels_l = []
+    for line in lines:
+        _, _, labels = jointslu_per_line(line)
+        labels_l.append(labels)
+    # save the labels into file
+    find_all_labels(labels_l)
 
 
 if __name__ == '__main__':

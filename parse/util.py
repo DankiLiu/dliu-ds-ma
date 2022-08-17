@@ -2,6 +2,7 @@ import requests
 from nltk.parse.corenlp import CoreNLPServer
 import json
 
+
 def corenlp_server_start(path_to_jar=None,
                          path_to_models_jar=None):
     # Only in testing phase
@@ -45,6 +46,11 @@ def read_jointslu_labels():
     return None
 
 
-def set_jointslu_labels(new_labels):
-    data = {"jointslu_labels": new_labels}
-    json.dump(data, "jointslu.json")
+def save_jointslu_labels(new_labels):
+    """Save all labels appeared in dataset into file
+    :paras new_labels: a list of label lists
+    """
+    data = {"jointslu_labels": list(new_labels)}
+    print("label set", data)
+    with open("jointslu.json", 'w') as f:
+        json.dump(data, f, indent=4)
