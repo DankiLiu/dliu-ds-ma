@@ -1,7 +1,7 @@
 from parse import util
 
 
-def read_jointslu_by_line(file_path):
+def read_jointslu_lines(file_path=None):
     if not file_path:
         file_path = "../data/sample.iob"
     with open(file_path) as f:
