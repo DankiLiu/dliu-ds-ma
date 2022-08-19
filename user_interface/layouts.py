@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 
 
-def pos_layout():
+def parsing_layout():
     """
         pos-tag layout:
                     |   Input   ******
@@ -9,43 +9,55 @@ def pos_layout():
                     |   Action  ******
                     |   Objects ** **
     """
-    pos_left = [sg.Text("Part-of-Speech-Tagging",
-                        font=("Arial bold", 15),
-                        text_color="black",
-                        background_color="white")]
-    pos_tags = [sg.Column([[sg.Text(" Input  ",
-                                    font=("arial bold", 11),
-                                    text_color="blue",
-                                    background_color="lightgrey")],
-                           [sg.Text(" Parsed ",
-                                    font=("arial bold", 11),
-                                    text_color="green",
-                                    background_color="lightgrey")]]),
-                sg.Column([[sg.Text("Input text here ...",
-                                    size=7,
-                                    auto_size_text=False,
-                                    key="-INPUT_TEXT-")],
-                           [
-                               sg.Text("Parsed text here ...",
-                                       size=7,
-                                       auto_size_text=False,
-                                       key="-POS_PARSED-")
-                           ]])
-                ]
-    pos_results = [sg.Column([[sg.Text("Action",
-                                       font=("Arial bold", 11),
-                                       text_color="blue",
-                                       background_color="lightgrey")],
-                              [sg.Text("Objects",
-                                       font=("Arial bold", 11),
-                                       text_color="blue",
-                                       background_color="lightgrey"
-                                       )]]),
-                   sg.Column([[sg.InputText("Output action from model ...", key="-POS_ACTION-")],
-                              [sg.InputText("Object name1, name2, ...", key="-POS_OBJECTS-")]])]
-    POS_LAYOUT = [
-        pos_left,
-        pos_tags,
-        pos_results
+    parsing_left = [sg.Text("Parsing",
+                            font=("Arial bold", 15),
+                            text_color="black")]
+    parsing_tags = [sg.Column([[sg.Text(" InputText ",
+                                        font=("arial", 11),
+                                        text_color="blue",
+                                        background_color="lightgrey")],
+                               [sg.Text(" POS-tag ",
+                                        font=("arial", 11),
+                                        text_color="blue",
+                                        background_color="lightgrey")],
+                               [sg.Text(" NER-tag ",
+                                        font=("arial", 11),
+                                        text_color="blue",
+                                        background_color="lightgrey")],
+                               [sg.Text(" DEP-tag ",
+                                        font=("arial", 11),
+                                        text_color="blue",
+                                        background_color="lightgrey")]
+                               ]),
+                    sg.Column([[sg.Text("Input text here ...",
+                                        size=7,
+                                        auto_size_text=True,
+                                        key="-INPUT_TEXT-")],
+                               [sg.Text(" POS tags here ...",
+                                        size=7,
+                                        auto_size_text=True,
+                                        key="-POS_PARSED-")],
+                               [sg.Text(" NER tags here ...",
+                                        size=7,
+                                        auto_size_text=True,
+                                        key="-NER_PARSED-")],
+                               [sg.Multiline(key="-DEP_PARSED-",
+                                             auto_size_text=True)]])
+                    ]
+    parsing_results = [sg.Column([[sg.Text("Action",
+                                           font=("Arial", 11),
+                                           text_color="blue",
+                                           background_color="lightgrey")],
+                                  [sg.Text("Objects",
+                                           font=("Arial", 11),
+                                           text_color="blue",
+                                           background_color="lightgrey"
+                                           )]]),
+                       sg.Column([[sg.InputText("Output action from model ...", key="-POS_ACTION-")],
+                                  [sg.InputText("Object name1, name2, ...", key="-POS_OBJECTS-")]])]
+    PARSING_LAYOUT = [
+        parsing_left,
+        parsing_tags,
+        parsing_results
     ]
-    return POS_LAYOUT
+    return PARSING_LAYOUT
