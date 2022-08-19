@@ -1,5 +1,5 @@
 from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPParser
-
+from parse import util
 
 def part_of_speech_parsing(text: str):
     pos_parser = CoreNLPParser(url='http://localhost:9000',
@@ -29,6 +29,19 @@ def dependency_parsing(text: str):
     # raw.pretty_print()
     # interpret_dp(raw.nodes)
     return tagged
+
+
+def corenlp_parse(text):
+    # Start server if not started
+    if not util.server_is_running("http://localhost:9000/"):
+        util.corenlp_server_start()
+    # pos parsing
+    pos = part_of_speech_parsing(text=text)
+    # ner parsing
+    ner = name_entity_recognition(text=text)
+    # dependency parsing
+    dp = dependency_parsing(text=text)
+    return pos, ner, dp
 
 
 def interpret_dp(raw):

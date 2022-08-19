@@ -1,6 +1,6 @@
 import parse.util as util
 from data.data_processing import jointslu_per_line, \
-    read_jointslu_by_line, find_all_labels
+    read_jointslu_lines, find_all_labels
 import parse.nltk_parser as np
 
 
@@ -18,7 +18,7 @@ def parse():
     if not util.server_is_running("http://localhost:9000/"):
         util.corenlp_server_start()
     dataset_path = "../data/sample.iob"
-    lines = read_jointslu_by_line(dataset_path)
+    lines = read_jointslu_lines(dataset_path)
 
     for line in lines:
         sentence, words, labels = jointslu_per_line(line)
@@ -36,7 +36,7 @@ def parse():
 def main():
     # read the file
     dataset_path = "../data/sample.iob"
-    lines = read_jointslu_by_line(dataset_path)
+    lines = read_jointslu_lines(dataset_path)
     # get the labels
     labels_l = []
     for line in lines:
