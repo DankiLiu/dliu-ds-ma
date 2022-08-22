@@ -1,4 +1,4 @@
-import parse.util as util
+import util as util
 from data.data_processing import jointslu_per_line, \
     read_jointslu_lines, find_all_labels
 import parse.nltk_parser as np

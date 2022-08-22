@@ -1,5 +1,6 @@
 from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPParser
-from parse import util
+import util
+
 
 def part_of_speech_parsing(text: str):
     pos_parser = CoreNLPParser(url='http://localhost:9000',
