@@ -1,4 +1,5 @@
-from parse import util
+import json
+import util
 
 
 def read_jointslu_lines(file_path=None):
@@ -43,3 +44,49 @@ def find_all_labels(llist, boi=False):
     labels = set(labels)
     print(f"{len(labels)} labels: {labels}")
     util.save_jointslu_labels(labels)
+
+
+def store_jointslu_labels():
+    with open("../data/jointslu/train.json") as f:
+        data = json.load(f)
+    labels_set = []
+    print(len(data), " data in train.json")
+    for ele in data:
+        labels = ele["labels"]
+        for label in labels.split(' '):
+            labels_set.append(label)
+    labels_set = set(labels_set)
+    print(f"{len(labels_set)} labels are [{labels_set}]")
+    util.save_jointslu_labels(labels_set)
+
+
+def construct_jointslu_data(type_name: str, lines):
+    """Construct the raw data for training usage.
+    type: train/test/val
+    lines: data lines from jointslu dataset
+    train.iob (raw data) into train.json"""
+    # Construct raw data into json format
+    def strip_extra(old_str):
+        new_str = old_str.strip()
+        new_str = new_str.strip('\n')
+        return new_str
+
+    data = []
+    for i in range(len(lines)):
+        text, labels = lines[i].split('\t')
+        new_text = strip_extra(text)
+        new_labels = strip_extra(labels)
+        if new_text and new_labels is not None:
+            print(f"text length {len(new_text.split(' '))}")
+            print(f"labels length {len(new_labels.split(' '))}")
+            print(new_text.split(' '))
+            print(new_labels.split(' '))
+            assert len(new_text.split(' ')) == len(new_labels.split(' '))
+            data.append({"id": i+1,
+                         "text": new_text,
+                         "labels": new_labels})
+    # Store data by type
+    store_path = "../data/jointslu/" + type_name + ".json"
+    outfile = open(store_path, 'w')
+    json.dump(data, outfile, indent=4)
+
