@@ -53,6 +53,7 @@ class JointSluDataset(Dataset):
 
     def collate_dia_samples(self, batch: List[DiaSample]) -> DiaBatch:
         texts_b = [b['text'] for b in batch]
+        labels_b = [b['labels'] for b in batch]
         input_tok_b = [text.split(' ') for text in texts_b]
         labels_tok_b = [label.split(' ') for label in labels_b]
         input_ids = [self.tokenizer.convert_tokens_to_ids(input_tok)
