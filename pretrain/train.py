@@ -1,4 +1,7 @@
-import json
+import sys
+
+# adding Folder_2/subfolder to the system path
+sys.path.insert(0, '/home/daliu/Documents/master-thesis/code/dliu-ds-ma/data')
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -7,7 +10,7 @@ from transformers import GPT2Tokenizer
 from data.data_processing import store_jointslu_labels
 from pretrain.model_lightning import LitGpt2Prediction
 from pretrain.jointslu_data_module import JointsluDataModule
-from util import read_jointslu_labels, save_jointslu_labels
+from util import read_jointslu_labels
 
 
 # Update labels again if training dataset is generated
