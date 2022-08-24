@@ -1,7 +1,7 @@
 import sys
 
 # adding Folder_2/subfolder to the system path
-sys.path.insert(0, '/home/daliu/Documents/master-thesis/code/dliu-ds-ma/data')
+sys.path.insert(0, '/home/daliu/Documents/master-thesis/code/dliu-ds-ma')
 
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
