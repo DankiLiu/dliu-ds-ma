@@ -21,7 +21,8 @@ def jointslu_per_line(line: str):
     """
     # Split the sentence and labels by tab
     sentence, labels = line.split('\t')
-
+    sentence = sentence.strip()
+    labels = labels.strip()
     # Strip BOS, EOS labels, first and last labels
     words_list, labels_list = sentence.split(' '), labels.split(' ')
     words_len, labels_len = len(words_list), len(labels_list)
