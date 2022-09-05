@@ -1,6 +1,7 @@
 from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPParser
 from parse import util
 
+
 def part_of_speech_parsing(text: str):
     pos_parser = CoreNLPParser(url='http://localhost:9000',
                                tagtype='pos')
@@ -42,6 +43,10 @@ def corenlp_parse(text):
     # dependency parsing
     dp = dependency_parsing(text=text)
     return pos, ner, dp
+
+
+def chunking(text):
+    pass
 
 
 def interpret_dp(raw):
