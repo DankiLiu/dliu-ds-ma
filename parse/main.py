@@ -35,7 +35,7 @@ def parse():
 
 def main():
     # read the file
-    dataset_path = "../data/sample.iob"
+    dataset_path = "../data/atis.train.w-intent.iob"
     lines = read_jointslu_lines(dataset_path)
     # get the labels
     labels_l = []
@@ -47,4 +47,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parse()
