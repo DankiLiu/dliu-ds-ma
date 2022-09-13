@@ -3,8 +3,6 @@ from torch.utils.data import DataLoader
 from os.path import exists
 
 from pretrain.jointslu_dataset import JointSluDataset
-from data.data_processing import read_jointslu_lines, \
-    construct_jointslu_data, store_jointslu_labels
 
 
 class JointsluDataModule(pl.LightningDataModule):
