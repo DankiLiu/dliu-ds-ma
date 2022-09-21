@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "prompt": "What should you do if you were a robot and user gives you this instruction?",
+    "description": "prompt describe the intent of the task is the model being the role of a robot."
+  },
+  {
+    "id": 2,
+    "prompt": "You are a robot assistant that wants to understand the task human gives you. \nYour responses should be a list of important information you extracted from the instruction.",
+    "description": "try to be more specific about how the output looks like."
+  },
+  {
+    "id": 3,
+    "prompt": "You want to understand the command and extract the important information in phrases.\n example:\ninstruction: show me the flights from boston to san francisco.\ninformation: find and show: flight; from: boston; to: san francisco;",
+    "description": "one example"
+  }
+]
