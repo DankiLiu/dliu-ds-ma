@@ -10,13 +10,16 @@ from data.data_processing import store_jointslu_labels
 from pretrain.model_lightning import LitBertTokenClassification
 from pretrain.jointslu_data_module import JointsluDataModule
 
+import json
+from pathlib import Path
+
 
 # Update labels again if training dataset is generated
 def update_label():
     store_jointslu_labels()
 
 
-def define_tokenizer():
+def define_old_tokenizer():
     tokenizer = BertTokenizer.from_pretrained(
         'bert-base-uncased',
         do_lower_case=True,
@@ -194,7 +197,17 @@ def define_tokenizer():
     return tokenizer
 
 
-if __name__ == '__main__':
+def define_tokenizer():
+    tokenizer = BertTokenizer.from_pretrained(
+        'bert-base-uncased',
+        do_lower_case=True,
+        sep_token='EOS',
+        cls_token='BOS')
+    # Setup tokenizer
+    return tokenizer
+
+
+def train():
     tokenizer = define_tokenizer()
     data_module = JointsluDataModule(tokenizer=tokenizer)
     model = LitBertTokenClassification(tokenizer=tokenizer)
@@ -202,3 +215,22 @@ if __name__ == '__main__':
     logger = TensorBoardLogger("pretrain/tb_logger", name="bert_jointslu")
     trainer = Trainer(max_epochs=3, logger=logger)
     trainer.fit(model, datamodule=data_module)
+
+
+def load_from_checkpoint():
+    tokenizer = define_old_tokenizer()
+    model = LitBertTokenClassification(tokenizer=tokenizer)
+    data_module = JointsluDataModule(tokenizer=tokenizer)
+    trainer = Trainer()
+    current_path =str(Path().absolute())
+    chk_path = Path(current_path + "/pretrain/tb_logger/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt")
+    print(chk_path)
+    trained_model = model.load_from_checkpoint(chk_path, tokenizer=tokenizer)
+    results = trainer.test(model=trained_model, datamodule=data_module, verbose=True)
+
+    # prediction =
+    print(results)
+
+
+if __name__ == '__main__':
+    load_from_checkpoint()
