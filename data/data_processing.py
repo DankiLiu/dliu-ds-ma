@@ -28,8 +28,8 @@ def jointslu_per_line(line: str):
     words_len, labels_len = len(words_list), len(labels_list)
     assert words_len == labels_len
 
-    words = words_list[1: words_len-1]
-    labels = labels_list[1: labels_len-1]
+    words = words_list[1: words_len - 1]
+    labels = labels_list[1: labels_len - 1]
     sentence = " ".join(words)
     return sentence, words, labels
 
@@ -65,6 +65,7 @@ def construct_jointslu_data(type_name: str, lines):
     type: train/test/val
     lines: data lines from jointslu dataset
     train.iob (raw data) into train.json"""
+
     # Construct raw data into json format
     def strip_extra(old_str):
         new_str = old_str.strip()
@@ -82,7 +83,7 @@ def construct_jointslu_data(type_name: str, lines):
             print(new_text.split(' '))
             print(new_labels.split(' '))
             assert len(new_text.split(' ')) == len(new_labels.split(' '))
-            data.append({"id": i+1,
+            data.append({"id": i + 1,
                          "text": new_text,
                          "labels": new_labels})
     # Store data by type
@@ -90,3 +91,46 @@ def construct_jointslu_data(type_name: str, lines):
     outfile = open(store_path, 'w')
     json.dump(data, outfile, indent=4)
 
+
+def set_cls_sep_tokens():
+    with open("jointslu/bert_val.json") as f:
+        data = json.load(f)
+    new_data = []
+    for dic in data:
+        labels = dic["labels"].split(' ')
+        labels[0] = "[CLS]"
+        labels[-1] = "[SEP]"
+        new_labels = ' '.join(labels)
+        dic["labels"] = new_labels
+        new_data.append(dic)
+    f.close()
+    outfile = open("jointslu/bert_val.json", 'w')
+    print(data[0])
+    print(new_data[0])
+    json.dump(new_data, outfile, indent=4)
+    outfile.close()
+
+
+def read_jointslu_labels_dict():
+    f = open("../data/jointslu_dict.json")
+    labels_dict = json.load(f)
+    return labels_dict
+
+
+def gpt3_from_bert_dataset():
+    f = open("../data/jointslu/bert_train.json")
+    data = json.load(f)
+    output_file = open("../data/jointslu/sentences.txt", 'a')
+    for example in data:
+        text = example["text"]
+        text = text.replace('EOS', '')
+        text = text.replace('BOS', '')
+        text = text.strip() + '.'
+        print(text)
+        output_file.write(text + '\n')
+    output_file.close()
+    f.close()
+
+
+if __name__ == '__main__':
+    gpt3_from_bert_dataset()
