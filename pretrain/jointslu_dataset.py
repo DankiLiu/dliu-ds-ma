@@ -73,7 +73,11 @@ class JointSluDataset(Dataset):
                 elif i == tok_length - 1:
                     label_ids.append(-100)
                 else:
-                    label_ids.append(labels[labels_tok[i]])
+                    try:
+                        label_ids.append(labels[labels_tok[i]])
+                    except:
+                        print("Label not found")
+                        label_ids.append(138)
             labels_ids.append(label_ids)
             print("encoded labels ids is: ", labels_ids)
         print(labels_tok_b)
