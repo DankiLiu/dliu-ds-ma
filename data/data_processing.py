@@ -120,7 +120,7 @@ def read_jointslu_labels_dict():
 def gpt3_from_bert_dataset():
     f = open("../data/jointslu/bert_train.json")
     data = json.load(f)
-    output_file = open("../data/jointslu/sentences.txt", 'a')
+    output_file = open("../data/jointslu/gpt3/train.json", 'a')
     for example in data:
         text = example["text"]
         text = text.replace('EOS', '')
@@ -130,6 +130,108 @@ def gpt3_from_bert_dataset():
         output_file.write(text + '\n')
     output_file.close()
     f.close()
+
+
+def create_training_data(shuffle=False):
+    """create data for parsing from "bert_***.json" without bos and eos
+    and store them in parsing_eval folder"""
+    # read bert_train.json
+    f = open("../data/jointslu/bert_train.json", 'r')
+    import json
+    data = json.load(f)
+    # remove bos and eos
+    new_data = []
+    for i in data:
+        tok_len = len(i["text"].split(' '))
+        new_text = ' '.join(i["text"].split(' ')[1:tok_len - 1])
+        new_label = ' '.join(i["labels"].split(' ')[1:tok_len - 1])
+        new_i = {
+            "id": i["id"],
+            "text": new_text,
+            "labels": new_label
+        }
+        new_data.append(new_i)
+    f.close()
+    # store in file
+    with open("../data/jointslu/parsing_eval/train.json", 'w') as f:
+        json.dump(new_data,
+                  f,
+                  indent=4)
+    f.close()
+
+
+def label_set():
+    labels = ['depart date',
+              'fare amount',
+              'from state',
+              'atis distance',
+              'ground fare',
+              'day name',
+              'stop state',
+              'atis airport',
+              'arrive time start',
+              'flight time',
+              'arrive time',
+              'month',
+              'relative to today',
+              'to airport',
+              'days code',
+              'return time',
+              'to state',
+              'airline name',
+              'aircraft code',
+              'airport name',
+              'stop location',
+              'return date',
+              'state code',
+              'transport type',
+              'flight stop',
+              'economy',
+              'atis aircraft',
+              'flight days',
+              'atis restriction',
+              'relative time',
+              'restriction code',
+              'alternative',
+              'airline code',
+              'O',
+              'flight number',
+              'airport code',
+              'state name',
+              'atis quantity',
+              'to city',
+              'ground service',
+              'in city',
+              'connect',
+              'from city',
+              'period of day',
+              'fare basis code',
+              'relative cost',
+              'from airport',
+              'atis abbreviation',
+              'atis airline',
+              'depart time',
+              'arrive time end',
+              'atis capacity',
+              'atis meal',
+              'at time',
+              'round trip',
+              'superlative',
+              'number of days',
+              'atis cheapest',
+              'class type',
+              'from location',
+              'to state code',
+              'meal code',
+              'stop city',
+              'atis flight',
+              'atis airfare',
+              'meal description',
+              'meal',
+              'arrive date',
+              'superlative',
+              'to contuntry']
+    return labels
 
 
 if __name__ == '__main__':
