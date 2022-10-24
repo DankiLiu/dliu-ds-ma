@@ -1,4 +1,8 @@
 import json
+from typing import List
+
+from pandas.core.indexing import IndexingError
+
 import util
 
 
@@ -112,7 +116,7 @@ def set_cls_sep_tokens():
 
 
 def read_jointslu_labels_dict():
-    f = open("../data/jointslu_dict.json")
+    f = open("../data/jointslu/pre-train/labels.json")
     labels_dict = json.load(f)
     return labels_dict
 
@@ -160,79 +164,93 @@ def create_training_data(shuffle=False):
     f.close()
 
 
-def label_set():
-    labels = ['depart date',
-              'fare amount',
-              'from state',
-              'atis distance',
-              'ground fare',
-              'day name',
-              'stop state',
-              'atis airport',
-              'arrive time start',
-              'flight time',
-              'arrive time',
-              'month',
-              'relative to today',
-              'to airport',
-              'days code',
-              'return time',
-              'to state',
-              'airline name',
-              'aircraft code',
-              'airport name',
-              'stop location',
-              'return date',
-              'state code',
-              'transport type',
-              'flight stop',
-              'economy',
-              'atis aircraft',
-              'flight days',
-              'atis restriction',
-              'relative time',
-              'restriction code',
-              'alternative',
-              'airline code',
-              'O',
-              'flight number',
-              'airport code',
-              'state name',
-              'atis quantity',
-              'to city',
-              'ground service',
-              'in city',
-              'connect',
-              'from city',
-              'period of day',
-              'fare basis code',
-              'relative cost',
-              'from airport',
-              'atis abbreviation',
-              'atis airline',
-              'depart time',
-              'arrive time end',
-              'atis capacity',
-              'atis meal',
-              'at time',
-              'round trip',
-              'superlative',
-              'number of days',
-              'atis cheapest',
-              'class type',
-              'from location',
-              'to state code',
-              'meal code',
-              'stop city',
-              'atis flight',
-              'atis airfare',
-              'meal description',
-              'meal',
-              'arrive date',
-              'superlative',
-              'to contuntry']
+def simp_label(ori):
+    """ return the matched simplified label give original label """
+    import pandas as pd
+    df = pd.read_csv("../data/jointslu/labels.csv",
+                     index_col=False)
+
+    try:
+        df2 = df.loc[df['original label'] == ori, 'simplified label']
+    except KeyError or IndexingError:
+        print(f"Can not find the label matching [{ori}]")
+        return ["O"]
+    if not df2.values:
+        return ["O"]
+    return df2.values
+
+
+def get_simplified_labels(oris: List):
+    """ return a list of labels that matched from the original labels
+    to simplified labels """
+    labels = []
+    for label in oris:
+        sim = simp_label(label)
+        labels.append(sim)
+    # flatten the list
+    labels = [i for sublist in labels for i in sublist]
     return labels
 
 
+def construct_data(data):
+    new_data = []
+    i = 0
+    for ele in data:
+        # labels list
+        labels = ele["labels"].split(' ')
+        new_labels = get_simplified_labels(labels[1: len(labels) - 1])
+        new_labels.insert(0, '[CLS]')
+        new_labels.append('[SEP]')
+        print(labels)
+        print(len(labels))
+        print(new_labels)
+        print(len(new_labels))
+        assert len(labels) == len(new_labels)
+
+        new_data.append({
+            'id': i,
+            'text': ele['text'].split(' '),
+            'labels': new_labels
+        })
+        i = i + 1
+    return new_data
+
+
+def change_labels2simplified():
+    """change the annotated data for training pre-trained model to simplified labels"""
+    path_train = '../data/jointslu/bert_train.json'
+    path_test = '../data/jointslu/bert_test.json'
+    path_val = '../data/jointslu/bert_val.json'
+
+    new_train_path = '../data/jointslu/pre-train/b_train.json'
+    new_test_path = '../data/jointslu/pre-train/b_test.json'
+    new_val_path = '../data/jointslu/pre-train/b_val.json'
+    """
+    train_f = open(path_train)
+    train_data = json.load(train_f)
+    new_train = construct_data(train_data)
+    with open(new_train_path, 'w') as f:
+        json.dump(new_train, f, indent=4)
+        f.close()
+    
+    test_f = open(path_test)
+    test_data = json.load(test_f)
+    new_test = construct_data(test_data)
+    with open(new_test_path, 'w') as f:
+        json.dump(new_test, f, indent=4)
+        f.close()
+    """
+    val_f = open(path_val)
+    val_data = json.load(val_f)
+    new_val = construct_data(val_data)
+    with open(new_val_path, 'w') as f:
+        json.dump(new_val, f)
+        f.close()
+
+
 if __name__ == '__main__':
-    gpt3_from_bert_dataset()
+    pass
+    # gpt3_from_bert_dataset()
+    # oris = ["I-depart_date.today_relative","B-arrive_time.start_time","atis_distance","O"]
+    # get_simplified_labels(oris)
+    change_labels2simplified()
