@@ -212,7 +212,7 @@ def train():
     data_module = JointsluDataModule(tokenizer=tokenizer)
     model = LitBertTokenClassification(tokenizer=tokenizer)
 
-    logger = TensorBoardLogger("pretrain/tb_logger", name="bert_jointslu")
+    logger = TensorBoardLogger("pretrain/model_sim", name="bert_jointslu")
     trainer = Trainer(max_epochs=3, logger=logger)
     trainer.fit(model, datamodule=data_module)
 
@@ -233,4 +233,5 @@ def load_from_checkpoint():
 
 
 if __name__ == '__main__':
-    load_from_checkpoint()
+    # load_from_checkpoint()
+    train()
