@@ -1,6 +1,8 @@
 from transformers import AdamW, BertForTokenClassification
 
+import torch
 import pytorch_lightning as pl
+from data.data_processing import read_jointslu_labels_dict as lbd
 
 
 class LitBertTokenClassification(pl.LightningModule):
@@ -10,7 +12,7 @@ class LitBertTokenClassification(pl.LightningModule):
         self.batch_size = batch_size
         self.model = BertForTokenClassification.from_pretrained(
             "distilbert-base-uncased",
-            num_labels=138)
+            num_labels=69)
         self.tokenizer = tokenizer
         self.model.resize_token_embeddings(len(self.tokenizer))
 
@@ -19,6 +21,7 @@ class LitBertTokenClassification(pl.LightningModule):
                 labels):
         print(f"input_ids: {input_ids}")
         print(f"labels   : {labels}")
+        assert len(input_ids) == len(labels)
         response = self.model(input_ids=input_ids,
                               labels=labels)
         return response
@@ -34,8 +37,6 @@ class LitBertTokenClassification(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         input_ids, labels = batch["input_ids"], batch["labels"]
-        print(input_ids)
-        print(labels)
         output = self.model(input_ids=input_ids,
                             labels=labels)
         val_loss = output.loss
@@ -45,17 +46,34 @@ class LitBertTokenClassification(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         input_ids, labels = batch["input_ids"], batch["labels"]
-        output = self.model.generate(input_ids=input_ids)
+        output = self.model(input_ids=input_ids)
+        print(input_ids)
+        print(output)
+        # decode the labels
+        labels_dict = lbd()
+        new_dict = dict((v, k) for k, v in labels_dict.items())
+        results = []
+        for i in range(len(input_ids)):
+            # for each example
+            m = torch.nn.Softmax(dim=1)
+            label_ids = m(output.logits[i]).tolist()
+            print(label_ids)
+            print(f"label ids after softmax \nlabel ids: {label_ids}")
+            predictions = [labels_dict.index(label_id) for label_id in label_ids]
+            print("predictions shape ", len(predictions))
+            print(predictions)
+            exit()
+            labels = []
+            input_token = self.tokenizer.convert_ids_to_tokens(input_ids[i])
+            for index in predictions:
+                labels.append(new_dict[index])
 
-        labels = self.tokenizer.convert_ids_to_tokens(labels[0])
-        # self.log("output", res_sen)
-        input_text = self.tokenizer.convert_ids_to_tokens(input_ids[0])
-        output_labels = self.tokenizer.convert_ids_to_tokens(labels[0])
-        output = {"input_text": input_text,
-                  "labels": output_labels}
-        print(output["input_text"])
-        print(output["labels"])
-        return output
+            result = {"input_token": input_token,
+                      "labels": labels}
+            print("-----result----\n")
+            print(result)
+            results.append(result)
+        return results
 
     def configure_optimizers(self):
         optimizer = AdamW(self.model.parameters(), lr=self.learning_rate, correct_bias=True)

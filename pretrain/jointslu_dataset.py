@@ -36,6 +36,7 @@ if False:
 # Load labels
 f = open("../data/jointslu/pre-train/labels.json")
 labels_dict = json.load(f)
+print(f"label size is {len(labels_dict)}")
 f.close()
 DatasetSplitName = Literal["train", "val", "test"]
 DiaSample = Dict[str, Union[torch.Tensor, str, int]]
