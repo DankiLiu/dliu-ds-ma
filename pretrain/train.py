@@ -5,7 +5,6 @@
 from pytorch_lightning import Trainer, tuner
 from pytorch_lightning.loggers import TensorBoardLogger
 from transformers import AutoTokenizer, BertTokenizer
-
 from data.data_processing import store_jointslu_labels
 from pretrain.model_lightning import LitBertTokenClassification
 from pretrain.jointslu_data_module import JointsluDataModule
@@ -30,7 +29,7 @@ def define_tokenizer():
 def train():
     tokenizer = define_tokenizer()
     data_module = JointsluDataModule(tokenizer=tokenizer)
-    model = LitBertTokenClassification(tokenizer=tokenizer)
+    model = LitBertTokenClassification(tokenizer=tokenizer, learning_rate=2.9908676527677725e-05)
 
     logger = TensorBoardLogger("pretrain/model_sim", name="bert_jointslu")
     trainer = Trainer(max_epochs=3, logger=logger)
@@ -69,4 +68,4 @@ def load_from_checkpoint():
 
 
 if __name__ == '__main__':
-    auto_lr_bz_train()
+    train()
