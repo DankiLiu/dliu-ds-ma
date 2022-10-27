@@ -34,12 +34,7 @@ if False:
     with open("../data/jointslu/pre-train/labels.json", 'w') as f:
         json.dump(labels_dict, f, indent=4)
 # Load labels
-import os
-
-cur_path = os.path.dirname(__file__)
-new_path = os.path.relpath('../data/jointslu/pre-train/labels.json', cur_path)
-
-f = open(new_path, 'r')
+f = open("../data/jointslu/pre-train/labels.json", 'r')
 labels_dict = json.load(f)
 print(f"label size is {len(labels_dict)}")
 f.close()
@@ -108,11 +103,11 @@ class JointSluDataset(Dataset):
                     tokenizer: Tokenizer):
         path = None
         if split == 'train':
-            path = os.path.relpath('../data/jointslu/pre-train/b_train.json', cur_path)
+            path = '../data/jointslu/pre-train/b_train.json'
         elif split == 'test':
-            path = os.path.relpath('../data/jointslu/pre-train/b_test.json', cur_path)
+            path = '../data/jointslu/pre-train/b_test.json'
         elif split == 'val':
-            path = os.path.relpath('../data/jointslu/pre-train/b_val.json', cur_path)
+            path = '../data/jointslu/pre-train/b_val.json'
         if path:
             with open(path) as f:
                 annotations = json.load(f)
