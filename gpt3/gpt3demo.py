@@ -1,5 +1,3 @@
-from itertools import product
-
 import openai
 import os
 
@@ -12,13 +10,14 @@ openai.api_key = API_KEY
 if __name__ == '__main__':
     prompt_f = open("prompts.json")
     import json
+
     prompts_info = json.load(prompt_f)
     for prompt_info in prompts_info:
         print(prompt_info["id"], ': ', prompt_info["prompt"])
     id_prompt = input("Choose a prompt by its id: ")
     prompt = ""
     if int(id_prompt) in [i + 1 for i in range(len(prompts_info))]:
-        prompt = prompts_info[int(id_prompt)-1]["prompt"]
+        prompt = prompts_info[int(id_prompt) - 1]["prompt"]
     else:
         print("Please input a id in range ", [i + 1 for i in range(len(prompts_info))])
 
@@ -30,8 +29,8 @@ if __name__ == '__main__':
         index = index + 1
         prompt = prompt + '\n' + "instruction:\n" + sentence
         response = openai.Completion.create(engine="text-davinci-001",
-                                    prompt=prompt,
-                                    max_tokens=256)
+                                            prompt=prompt,
+                                            max_tokens=256)
         print("\n=====================")
         print(sentence)
         print(f"response {response}")
