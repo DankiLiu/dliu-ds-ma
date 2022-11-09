@@ -42,8 +42,10 @@ def server_is_running(url):
 
 
 def read_jointslu_labels():
-
-    return None
+    with open("../data/jointslu.json") as f:
+        data = json.load(f)
+        jointslu_labels = data["jointslu_labels"]
+    return jointslu_labels
 
 
 def save_jointslu_labels(new_labels):
@@ -52,5 +54,5 @@ def save_jointslu_labels(new_labels):
     """
     data = {"jointslu_labels": list(new_labels)}
     print("label set", data)
-    with open("jointslu.json", 'w') as f:
+    with open("../data/jointslu.json", 'w') as f:
         json.dump(data, f, indent=4)

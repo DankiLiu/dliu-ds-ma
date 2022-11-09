@@ -1,0 +1,5 @@
+{
+    "text": "input: find me a flight that flies from memphis to tacoma",
+    "response": "\n\noutput: from city: memphis; to city: tacoma;",
+    "gt": "from city: memphis; to city: tacoma; "
+}
