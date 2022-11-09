@@ -248,9 +248,40 @@ def change_labels2simplified():
         f.close()
 
 
+def gpt3_select_examples():
+    """select an example for each label and store into file"""
+    in_file = "../data/jointslu/gpt3/examples.json"
+    examples = []
+    label_dict = read_jointslu_labels_dict()
+    labels = list(label_dict.keys())
+    # open pre-train training data file
+    f = open("../data/jointslu/pre-train/b_train.json", 'r')
+    data = json.load(f)
+    for idx, label in enumerate(labels):
+        example = None
+        for item in data:
+            # if contains the target label, save this example
+            if label in item["labels"]:
+                example = {
+                    "id": idx,
+                    "text": item["text"],
+                    "labels": item["labels"]
+                }
+                break
+        examples.append({
+            "label": label,
+            "example": example
+        })
+        print(f"example of {label} is\n{example}")
+    f_in = open(in_file, 'w')
+    json.dump(examples, f_in, indent=4)
+    f_in.close()
+    f.close()
+
+
 if __name__ == '__main__':
-    pass
     # gpt3_from_bert_dataset()
     # oris = ["I-depart_date.today_relative","B-arrive_time.start_time","atis_distance","O"]
     # get_simplified_labels(oris)
-    change_labels2simplified()
+    # change_labels2simplified()
+    gpt3_select_examples()
