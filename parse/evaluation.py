@@ -1,7 +1,8 @@
 from typing import List
 
+import pandas as pd
+
 import util
-from data.data_processing import label_set
 from parse.nltk_parser import dependency_parsing
 from parse.nltk_parser import name_entity_recognition as ner
 from parse.nltk_parser import part_of_speech_parsing as pos
@@ -12,10 +13,14 @@ import torch
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pandas as pd
-import numpy as np
+import json
 
-LABELS = label_set()
+
+# same labels as in pre-train
+f = open("../data/jointslu/pre-train/labels.json")
+data = json.load(f)
+LABELS = list(data.keys())
+f.close()
 
 
 def phrases_from_dep_graph(words, dep_graph):
@@ -36,18 +41,14 @@ def phrases_from_dep_graph(words, dep_graph):
 
 
 def plotting(labels=None, acc: List=None, f1: List=None):
-    """
-    fake data for plotting
-    [3, 10, 50]
-    [0.8333333333333334, 0.6370238095238097, 0.7038852813852817]
-    [0.8888888888888888, 0.46761904761904766, 0.5625238095238096]
-    """
     df = pd.read_csv("../data/jointslu/parsing_eval/scores.csv")
     print(df.head())
+    ndf = df.loc[df["num of examples"] == 1000]
+    plt.ylim(0, 1.0)
 
     sns.barplot(x='num of examples',
                 y='scores',
-                data=df,
+                data=ndf,
                 palette='Paired',
                 hue="type")
 
@@ -56,7 +57,7 @@ def plotting(labels=None, acc: List=None, f1: List=None):
 
 
 def main():
-    sample_nums = [3, 10, 50]
+    sample_nums = [300, 1000]
     avg_accs = []
     avg_f1s = []
     for i in sample_nums:
@@ -65,7 +66,15 @@ def main():
         avg_f1 = sum(f1)/i
         avg_accs.append(avg_acc)
         avg_f1s.append(avg_f1)
+    print(avg_accs)
+    print(avg_f1s)
     # todo: save evaluation scores into a .csv data
+
+
+def evaluation_per_label():
+    for label in LABELS:
+        # for the evaluated label, if in predicted labels, check the location, if not in predicted label
+        pass
 
 
 def evaluation(num=1, shuffle=True, pos=True, ner=True):
