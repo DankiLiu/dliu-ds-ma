@@ -1,0 +1,2184 @@
+[
+    {
+        "label": "atis capacity",
+        "example": null
+    },
+    {
+        "label": "to contuntry",
+        "example": {
+            "id": 1,
+            "text": [
+                "BOS",
+                "i",
+                "need",
+                "a",
+                "listing",
+                "of",
+                "flights",
+                "from",
+                "new",
+                "york",
+                "city",
+                "to",
+                "montreal",
+                "canada",
+                "departing",
+                "thursday",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "from city",
+                "from city",
+                "O",
+                "to city",
+                "to contuntry",
+                "O",
+                "depart date",
+                "O",
+                "O",
+                "depart time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "relative to today",
+        "example": {
+            "id": 2,
+            "text": [
+                "BOS",
+                "what",
+                "ground",
+                "transportation",
+                "is",
+                "available",
+                "in",
+                "dallas",
+                "tomorrow",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "relative to today",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "fare basis code",
+        "example": {
+            "id": 3,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "fare",
+                "code",
+                "h",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "fare basis code",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "stop location",
+        "example": {
+            "id": 4,
+            "text": [
+                "BOS",
+                "locate",
+                "flights",
+                "from",
+                "philadelphia",
+                "to",
+                "dallas",
+                "stopping",
+                "in",
+                "hartfield",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "O",
+                "stop location",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "connect",
+        "example": {
+            "id": 5,
+            "text": [
+                "BOS",
+                "show",
+                "all",
+                "connecting",
+                "flights",
+                "from",
+                "pittsburgh",
+                "to",
+                "oakland",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "connect",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "airline name",
+        "example": {
+            "id": 6,
+            "text": [
+                "BOS",
+                "i",
+                "would",
+                "like",
+                "to",
+                "fly",
+                "from",
+                "denver",
+                "to",
+                "pittsburgh",
+                "on",
+                "united",
+                "airlines",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "airline name",
+                "airline name",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "class type",
+        "example": {
+            "id": 7,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "the",
+                "first",
+                "class",
+                "fares",
+                "from",
+                "boston",
+                "to",
+                "denver",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "class type",
+                "class type",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "fare amount",
+        "example": {
+            "id": 8,
+            "text": [
+                "BOS",
+                "round",
+                "trip",
+                "fares",
+                "from",
+                "pittsburgh",
+                "to",
+                "philadelphia",
+                "under",
+                "1000",
+                "dollars",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "round trip",
+                "round trip",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "relative cost",
+                "fare amount",
+                "fare amount",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "to city",
+        "example": {
+            "id": 9,
+            "text": [
+                "BOS",
+                "i",
+                "want",
+                "to",
+                "fly",
+                "from",
+                "boston",
+                "at",
+                "838",
+                "am",
+                "and",
+                "arrive",
+                "in",
+                "denver",
+                "at",
+                "1110",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "O",
+                "O",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "state name",
+        "example": {
+            "id": 10,
+            "text": [
+                "BOS",
+                "i",
+                "need",
+                "information",
+                "for",
+                "ground",
+                "transportation",
+                "denver",
+                "colorado",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "state name",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "to state code",
+        "example": {
+            "id": 11,
+            "text": [
+                "BOS",
+                "please",
+                "give",
+                "me",
+                "the",
+                "flights",
+                "from",
+                "san",
+                "francisco",
+                "to",
+                "washington",
+                "dc",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "from city",
+                "O",
+                "to city",
+                "to state code",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "alternative",
+        "example": {
+            "id": 12,
+            "text": [
+                "BOS",
+                "what",
+                "are",
+                "the",
+                "nonstop",
+                "flights",
+                "on",
+                "america",
+                "west",
+                "or",
+                "southwest",
+                "air",
+                "from",
+                "kansas",
+                "city",
+                "to",
+                "burbank",
+                "on",
+                "saturday",
+                "may",
+                "twenty",
+                "two",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "flight stop",
+                "O",
+                "O",
+                "airline name",
+                "airline name",
+                "alternative",
+                "airline name",
+                "O",
+                "O",
+                "from city",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "arrive date",
+                "return date",
+                "arrive date",
+                "arrive date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "arrive time end",
+        "example": {
+            "id": 13,
+            "text": [
+                "BOS",
+                "show",
+                "flights",
+                "from",
+                "denver",
+                "to",
+                "oakland",
+                "arriving",
+                "between",
+                "12",
+                "and",
+                "1",
+                "o'clock",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "O",
+                "arrive time",
+                "O",
+                "arrive time end",
+                "arrive time end",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "relative cost",
+        "example": {
+            "id": 14,
+            "text": [
+                "BOS",
+                "cheapest",
+                "airfare",
+                "from",
+                "tacoma",
+                "to",
+                "orlando",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "relative cost",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis flight",
+        "example": null
+    },
+    {
+        "label": "aircraft code",
+        "example": {
+            "id": 16,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "all",
+                "flights",
+                "from",
+                "orlando",
+                "to",
+                "san",
+                "diego",
+                "on",
+                "a",
+                "boeing",
+                "737",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "to city",
+                "O",
+                "O",
+                "O",
+                "aircraft code",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "flight stop",
+        "example": {
+            "id": 17,
+            "text": [
+                "BOS",
+                "what",
+                "nonstop",
+                "flights",
+                "between",
+                "boston",
+                "and",
+                "washington",
+                "arrive",
+                "after",
+                "4",
+                "o'clock",
+                "pm",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "flight stop",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "arrive time",
+                "arrive time",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "relative time",
+        "example": {
+            "id": 18,
+            "text": [
+                "BOS",
+                "i",
+                "would",
+                "like",
+                "information",
+                "on",
+                "ground",
+                "transportation",
+                "in",
+                "atlanta",
+                "from",
+                "the",
+                "airport",
+                "to",
+                "the",
+                "city",
+                "in",
+                "the",
+                "morning",
+                "around",
+                "9",
+                "am",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "period of day",
+                "relative time",
+                "at time",
+                "at time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "airport code",
+        "example": {
+            "id": 19,
+            "text": [
+                "BOS",
+                "what",
+                "does",
+                "mco",
+                "stand",
+                "for",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "airport code",
+                "O",
+                "O",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis meal",
+        "example": null
+    },
+    {
+        "label": "to airport",
+        "example": {
+            "id": 21,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "the",
+                "cheapest",
+                "flight",
+                "from",
+                "boston",
+                "to",
+                "bwi",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "relative cost",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to airport",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "economy",
+        "example": {
+            "id": 22,
+            "text": [
+                "BOS",
+                "can",
+                "you",
+                "show",
+                "me",
+                "economy",
+                "class",
+                "one",
+                "way",
+                "fares",
+                "for",
+                "flights",
+                "from",
+                "oakland",
+                "to",
+                "dallas",
+                "on",
+                "december",
+                "sixteenth",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "economy",
+                "economy",
+                "round trip",
+                "round trip",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "depart date",
+                "depart date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "stop city",
+        "example": {
+            "id": 23,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "the",
+                "flights",
+                "from",
+                "san",
+                "diego",
+                "to",
+                "newark",
+                "by",
+                "way",
+                "of",
+                "houston",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "O",
+                "O",
+                "stop city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "airport name",
+        "example": {
+            "id": 24,
+            "text": [
+                "BOS",
+                "tell",
+                "me",
+                "about",
+                "ground",
+                "transportation",
+                "in",
+                "st.",
+                "petersburg",
+                "airport",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "airport name",
+                "airport name",
+                "airport name",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "meal code",
+        "example": {
+            "id": 25,
+            "text": [
+                "BOS",
+                "what",
+                "does",
+                "d",
+                "s",
+                "stand",
+                "for",
+                "for",
+                "meals",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "meal code",
+                "meal code",
+                "O",
+                "O",
+                "O",
+                "meal",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "ground fare",
+        "example": null
+    },
+    {
+        "label": "arrive time start",
+        "example": {
+            "id": 27,
+            "text": [
+                "BOS",
+                "list",
+                "all",
+                "trans",
+                "world",
+                "airline",
+                "flights",
+                "from",
+                "indianapolis",
+                "to",
+                "houston",
+                "that",
+                "arrive",
+                "in",
+                "houston",
+                "between",
+                "1030",
+                "am",
+                "and",
+                "1130",
+                "am",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "airline name",
+                "airline name",
+                "airline name",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "arrive time start",
+                "O",
+                "arrive time end",
+                "arrive time end",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "superlative",
+        "example": {
+            "id": 28,
+            "text": [
+                "BOS",
+                "which",
+                "airline",
+                "has",
+                "the",
+                "most",
+                "arrivals",
+                "in",
+                "atlanta",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "superlative",
+                "O",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "O",
+        "example": {
+            "id": 29,
+            "text": [
+                "BOS",
+                "i",
+                "want",
+                "to",
+                "fly",
+                "from",
+                "boston",
+                "at",
+                "838",
+                "am",
+                "and",
+                "arrive",
+                "in",
+                "denver",
+                "at",
+                "1110",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "O",
+                "O",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "restriction code",
+        "example": {
+            "id": 30,
+            "text": [
+                "BOS",
+                "what",
+                "does",
+                "restriction",
+                "ap",
+                "57",
+                "mean",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "restriction code",
+                "restriction code",
+                "O",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "stop state",
+        "example": {
+            "id": 31,
+            "text": [
+                "BOS",
+                "are",
+                "there",
+                "any",
+                "flights",
+                "from",
+                "boston",
+                "to",
+                "san",
+                "francisco",
+                "which",
+                "stop",
+                "in",
+                "washington",
+                "dc",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "to city",
+                "O",
+                "O",
+                "O",
+                "stop city",
+                "stop state",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "at time",
+        "example": {
+            "id": 32,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "the",
+                "transportation",
+                "time",
+                "from",
+                "the",
+                "airport",
+                "to",
+                "boston",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "at time",
+                "O",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "meal",
+        "example": {
+            "id": 33,
+            "text": [
+                "BOS",
+                "find",
+                "the",
+                "latest",
+                "flight",
+                "from",
+                "san",
+                "francisco",
+                "to",
+                "atlanta",
+                "that",
+                "serves",
+                "a",
+                "meal",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "superlative",
+                "O",
+                "O",
+                "from city",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "O",
+                "O",
+                "meal",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "ground service",
+        "example": null
+    },
+    {
+        "label": "from state",
+        "example": {
+            "id": 35,
+            "text": [
+                "BOS",
+                "flights",
+                "from",
+                "newark",
+                "new",
+                "jersey",
+                "to",
+                "cleveland",
+                "ohio",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "from city",
+                "from location",
+                "from state",
+                "O",
+                "to city",
+                "to state",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis restriction",
+        "example": null
+    },
+    {
+        "label": "state code",
+        "example": {
+            "id": 37,
+            "text": [
+                "BOS",
+                "what",
+                "kind",
+                "of",
+                "ground",
+                "transportation",
+                "is",
+                "there",
+                "in",
+                "washington",
+                "dc",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "state code",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis airfare",
+        "example": null
+    },
+    {
+        "label": "atis abbreviation",
+        "example": null
+    },
+    {
+        "label": "number of days",
+        "example": {
+            "id": 40,
+            "text": [
+                "BOS",
+                "and",
+                "i'll",
+                "need",
+                "ground",
+                "transportation",
+                "for",
+                "tuesday",
+                "july",
+                "sixth",
+                "to",
+                "wednesday",
+                "july",
+                "seventh",
+                "in",
+                "san",
+                "diego",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "day name",
+                "month",
+                "number of days",
+                "O",
+                "day name",
+                "month",
+                "number of days",
+                "O",
+                "in city",
+                "in city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis airline",
+        "example": null
+    },
+    {
+        "label": "depart time",
+        "example": {
+            "id": 42,
+            "text": [
+                "BOS",
+                "i",
+                "want",
+                "to",
+                "fly",
+                "from",
+                "boston",
+                "at",
+                "838",
+                "am",
+                "and",
+                "arrive",
+                "in",
+                "denver",
+                "at",
+                "1110",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "O",
+                "O",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "days code",
+        "example": {
+            "id": 43,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "sa",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "days code",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "arrive date",
+        "example": {
+            "id": 44,
+            "text": [
+                "BOS",
+                "what",
+                "flight",
+                "goes",
+                "from",
+                "denver",
+                "to",
+                "baltimore",
+                "first",
+                "class",
+                "on",
+                "united",
+                "airlines",
+                "arriving",
+                "on",
+                "may",
+                "seventh",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "class type",
+                "class type",
+                "O",
+                "airline name",
+                "airline name",
+                "O",
+                "O",
+                "return date",
+                "arrive date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "in city",
+        "example": {
+            "id": 45,
+            "text": [
+                "BOS",
+                "what",
+                "kind",
+                "of",
+                "ground",
+                "transportation",
+                "is",
+                "available",
+                "in",
+                "denver",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis quantity",
+        "example": null
+    },
+    {
+        "label": "depart date",
+        "example": {
+            "id": 47,
+            "text": [
+                "BOS",
+                "what",
+                "flights",
+                "are",
+                "available",
+                "from",
+                "pittsburgh",
+                "to",
+                "baltimore",
+                "on",
+                "thursday",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "depart date",
+                "depart time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "from airport",
+        "example": {
+            "id": 48,
+            "text": [
+                "BOS",
+                "how",
+                "far",
+                "is",
+                "it",
+                "from",
+                "orlando",
+                "airport",
+                "to",
+                "orlando",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from location",
+                "from airport",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "flight time",
+        "example": {
+            "id": 49,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "the",
+                "arrival",
+                "time",
+                "in",
+                "san",
+                "francisco",
+                "for",
+                "the",
+                "755",
+                "am",
+                "flight",
+                "leaving",
+                "washington",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "flight time",
+                "flight time",
+                "O",
+                "from city",
+                "from city",
+                "O",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "from city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "flight days",
+        "example": {
+            "id": 50,
+            "text": [
+                "BOS",
+                "list",
+                "daily",
+                "flights",
+                "from",
+                "boston",
+                "to",
+                "atlanta",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "flight days",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "period of day",
+        "example": {
+            "id": 51,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "ground",
+                "transportation",
+                "in",
+                "philadelphia",
+                "on",
+                "monday",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "O",
+                "day name",
+                "period of day",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "return time",
+        "example": {
+            "id": 52,
+            "text": [
+                "BOS",
+                "i",
+                "am",
+                "interested",
+                "in",
+                "booking",
+                "an",
+                "early",
+                "morning",
+                "flight",
+                "from",
+                "dallas",
+                "into",
+                "houston",
+                "on",
+                "february",
+                "twenty",
+                "second",
+                "and",
+                "returning",
+                "late",
+                "in",
+                "the",
+                "evening",
+                "of",
+                "february",
+                "twenty",
+                "second",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "O",
+                "depart date",
+                "depart date",
+                "depart date",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "return time",
+                "O",
+                "return date",
+                "return date",
+                "return date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis airport",
+        "example": null
+    },
+    {
+        "label": "atis aircraft",
+        "example": null
+    },
+    {
+        "label": "to state",
+        "example": {
+            "id": 55,
+            "text": [
+                "BOS",
+                "i",
+                "would",
+                "like",
+                "a",
+                "list",
+                "of",
+                "round",
+                "trip",
+                "flights",
+                "between",
+                "indianapolis",
+                "and",
+                "orlando",
+                "florida",
+                "for",
+                "the",
+                "twenty",
+                "seventh",
+                "and",
+                "the",
+                "twenty",
+                "eighth",
+                "of",
+                "december",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "round trip",
+                "round trip",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "to state",
+                "O",
+                "O",
+                "depart date",
+                "depart date",
+                "O",
+                "O",
+                "depart date",
+                "depart date",
+                "O",
+                "depart date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "airline code",
+        "example": {
+            "id": 56,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "the",
+                "flights",
+                "on",
+                "twa",
+                "from",
+                "atlanta",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "airline code",
+                "O",
+                "from city",
+                "O",
+                "O",
+                "depart time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "flight number",
+        "example": {
+            "id": 57,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "the",
+                "first",
+                "class",
+                "fare",
+                "on",
+                "united",
+                "flight",
+                "352",
+                "from",
+                "denver",
+                "to",
+                "boston",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "class type",
+                "class type",
+                "O",
+                "O",
+                "airline name",
+                "O",
+                "flight number",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "return date",
+        "example": {
+            "id": 58,
+            "text": [
+                "BOS",
+                "what",
+                "flight",
+                "goes",
+                "from",
+                "denver",
+                "to",
+                "baltimore",
+                "first",
+                "class",
+                "on",
+                "united",
+                "airlines",
+                "arriving",
+                "on",
+                "may",
+                "seventh",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "class type",
+                "class type",
+                "O",
+                "airline name",
+                "airline name",
+                "O",
+                "O",
+                "return date",
+                "arrive date",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "meal description",
+        "example": {
+            "id": 59,
+            "text": [
+                "BOS",
+                "what",
+                "is",
+                "the",
+                "earliest",
+                "flight",
+                "from",
+                "boston",
+                "to",
+                "bwi",
+                "that",
+                "serves",
+                "a",
+                "snack",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "superlative",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to airport",
+                "O",
+                "O",
+                "O",
+                "meal description",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis cheapest",
+        "example": null
+    },
+    {
+        "label": "arrive time",
+        "example": {
+            "id": 61,
+            "text": [
+                "BOS",
+                "i",
+                "want",
+                "to",
+                "fly",
+                "from",
+                "boston",
+                "at",
+                "838",
+                "am",
+                "and",
+                "arrive",
+                "in",
+                "denver",
+                "at",
+                "1110",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "O",
+                "O",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "atis distance",
+        "example": null
+    },
+    {
+        "label": "from location",
+        "example": {
+            "id": 63,
+            "text": [
+                "BOS",
+                "how",
+                "far",
+                "is",
+                "it",
+                "from",
+                "orlando",
+                "airport",
+                "to",
+                "orlando",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from location",
+                "from airport",
+                "O",
+                "to city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "month",
+        "example": {
+            "id": 64,
+            "text": [
+                "BOS",
+                "and",
+                "i'll",
+                "need",
+                "ground",
+                "transportation",
+                "for",
+                "tuesday",
+                "july",
+                "sixth",
+                "to",
+                "wednesday",
+                "july",
+                "seventh",
+                "in",
+                "san",
+                "diego",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "day name",
+                "month",
+                "number of days",
+                "O",
+                "day name",
+                "month",
+                "number of days",
+                "O",
+                "in city",
+                "in city",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "day name",
+        "example": {
+            "id": 65,
+            "text": [
+                "BOS",
+                "show",
+                "me",
+                "ground",
+                "transportation",
+                "in",
+                "philadelphia",
+                "on",
+                "monday",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "O",
+                "day name",
+                "period of day",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "round trip",
+        "example": {
+            "id": 66,
+            "text": [
+                "BOS",
+                "round",
+                "trip",
+                "fares",
+                "from",
+                "pittsburgh",
+                "to",
+                "philadelphia",
+                "under",
+                "1000",
+                "dollars",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "round trip",
+                "round trip",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "to city",
+                "relative cost",
+                "fare amount",
+                "fare amount",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "from city",
+        "example": {
+            "id": 67,
+            "text": [
+                "BOS",
+                "i",
+                "want",
+                "to",
+                "fly",
+                "from",
+                "boston",
+                "at",
+                "838",
+                "am",
+                "and",
+                "arrive",
+                "in",
+                "denver",
+                "at",
+                "1110",
+                "in",
+                "the",
+                "morning",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "O",
+                "from city",
+                "O",
+                "depart time",
+                "depart time",
+                "O",
+                "O",
+                "O",
+                "to city",
+                "O",
+                "arrive time",
+                "O",
+                "O",
+                "arrive time",
+                "[SEP]"
+            ]
+        }
+    },
+    {
+        "label": "transport type",
+        "example": {
+            "id": 68,
+            "text": [
+                "BOS",
+                "how",
+                "much",
+                "does",
+                "the",
+                "limousine",
+                "service",
+                "cost",
+                "within",
+                "pittsburgh",
+                "EOS"
+            ],
+            "labels": [
+                "[CLS]",
+                "O",
+                "O",
+                "O",
+                "O",
+                "transport type",
+                "O",
+                "O",
+                "O",
+                "in city",
+                "[SEP]"
+            ]
+        }
+    }
+]
