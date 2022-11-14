@@ -119,6 +119,7 @@ def set_cls_sep_tokens():
 def read_jointslu_labels_dict():
     f = open("../data/jointslu/pre-train/labels.json")
     labels_dict = json.load(f)
+    f.close()
     return labels_dict
 
 
