@@ -3,6 +3,8 @@ from typing import List
 import pandas as pd
 
 import util
+from data.data_processing import read_jointslu_labels_dict
+
 from parse.nltk_parser import dependency_parsing
 from parse.nltk_parser import name_entity_recognition as ner
 from parse.nltk_parser import part_of_speech_parsing as pos
@@ -14,10 +16,10 @@ import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
-
+import csv
 
 # same labels as in pre-train
-f = open("../data/jointslu/pre-train/labels.json")
+f = open("data/jointslu/pre-train/labels.json")
 data = json.load(f)
 LABELS = list(data.keys())
 f.close()
@@ -40,7 +42,7 @@ def phrases_from_dep_graph(words, dep_graph):
     return phrases_dict
 
 
-def plotting(labels=None, acc: List=None, f1: List=None):
+def plotting(labels=None, acc: List = None, f1: List = None):
     df = pd.read_csv("../data/jointslu/parsing_eval/scores.csv")
     print(df.head())
     ndf = df.loc[df["num of examples"] == 1000]
@@ -62,8 +64,8 @@ def main():
     avg_f1s = []
     for i in sample_nums:
         acc, f1 = evaluation(num=i, shuffle=True)
-        avg_acc = sum(acc)/i
-        avg_f1 = sum(f1)/i
+        avg_acc = sum(acc) / i
+        avg_f1 = sum(f1) / i
         avg_accs.append(avg_acc)
         avg_f1s.append(avg_f1)
     print(avg_accs)
@@ -71,68 +73,103 @@ def main():
     # todo: save evaluation scores into a .csv data
 
 
-def evaluation_per_label():
-    for label in LABELS:
-        # for the evaluated label, if in predicted labels, check the location, if not in predicted label
-        pass
-
-
-def evaluation(num=1, shuffle=True, pos=True, ner=True):
-    """Evaluate parsing with all labels"""
+def evaluation_per_label(num, shuffle):
+    """return acc and f1 for num of tests for each specific label"""
     # get training examples
-    text, labels = get_examples("train", num=num+20, do_shuffle=shuffle)
-    # transform the labels into simplified labels
+    text, labels = get_examples("test", num=num + 20, do_shuffle=shuffle)
     gts = [ground_truth(label.split(' ')) for label in labels]
-    print("original labels: ", labels[0])
-    print("matched labels: ", gts[0])
+    predictions, _, utext, ulabels, ugts = model_testing(text, labels, gts)
+    # todo: For each key (label), calculate how many times it is appeared in gt?
+    #  or is it covered in tp and tn?
+    f = open("data/jointslu/parsing_eval/par_eval_labels.csv", 'a')
+    run_example = False
+    if run_example:
+        # test label "to city"
+        TP, FN, FP, TN = prediction_metrics_per_label(predictions, ugts, "to city")
+        # store result in csv file
+        row = {
+            "label_name": "to city",
+            "num_examples": num,
+            "TP": TP,
+            "FN": FN,
+            "FP": FP,
+            "TN": TN
+        }
+        print(row)
+    else:
+        for label in LABELS:
+            TP, FN, FP, TN = prediction_metrics_per_label(predictions, ugts, label)
+            # store result in csv file
+            row = {
+                "label_name": label,
+                "num_examples": num,
+                "TP": TP,
+                "FN": FN,
+                "FP": FP,
+                "TN": TN
+            }
+            print(row)
+            # print(f"result for label {label} \n", row)
+            # writer = csv.writer(f)
+            # writer.writerow(row)
+        f.close()
+
+
+def model_testing(text, labels, gts):
+    """return the result of parsing"""
+    assert len(text) == len(labels)
+    predictions, matching_dicts, utext, ulabels, ugts = [], [], [], [], []
     # parse examples
     dep_result, _, ner_result = parse_examples(text)
     # load sbert model
     sbert = sbert_model()
-    acc = []
-    f1 = []
     ith_exp = 0
-    while ith_exp < num:
-        print(text[ith_exp])
-        print(gts[ith_exp])
-        print(len(text[ith_exp].split(' ')))
-        print(len(gts[ith_exp]))
+    while ith_exp < len(text):
         assert len(text[ith_exp].split(' ')) == len(gts[ith_exp])
         dp_graph = dep_result[ith_exp]
         ner_labels = ner_result[ith_exp]
         # compare dependency graph length with labels length
         min_add = len(gts[ith_exp]) - 3
-        print("min_add: ", min_add)
         address = min_add
         while dp_graph.contains_address(min_add):
             address = min_add
             min_add = min_add + 1
         # if length not match, skip this example
-        print(f"graph length {address} - label length {len(gts[ith_exp])}")
         if address != len(gts[ith_exp]):
             print("length not match")
             ith_exp = ith_exp + 1
             continue
         phrases, pgt, matching_dict = interpret_dep(dp_graph, ner_labels, gts[ith_exp], with_ner=True)
-
+        # store the used examples
+        utext.append(text[ith_exp])
+        ulabels.append(labels[ith_exp])
+        ugts.append(gts[ith_exp])
         # find label for each phrase with similarity
         cosine_scores = cos_sim_per_example(phrases, LABELS, sbert)
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
         predicted = [LABELS[idx] for idx in label_idxs]
-        gt = gts[ith_exp]
-        # acc.append(accuracy_gt(predicted, gt))
-        # p_acc.append(accuracy(predicted, pgt))
+        predictions.append(predicted)
+        matching_dicts.append(matching_dict)
         print("text: ", text[ith_exp])
         print("labels: ", labels[ith_exp])
         print("phrases: ", phrases)
-        print("ground truth: ", gt)
+        print("ground truth: ", gts[ith_exp])
         print("predicted: ", predicted)
-        print("accuracy: ", accuracy_score(predicted, gt, matching_dict))
-        print("f1: ", f1_score(predicted, gt, matching_dict))
-        acc.append(accuracy_score(predicted, gt, matching_dict))
-        f1.append(f1_score(predicted, gt, matching_dict))
-        print('\n')
-        ith_exp = ith_exp + 1
+    assert len(predictions) == len(utext)
+    assert len(predictions) == len(ulabels)
+    return predictions, matching_dicts, utext, ulabels, ugts
+
+
+def evaluation(num=1, shuffle=True, pos=True, ner=True):
+    """Evaluate parsing with all labels"""
+    # get training examples
+    text, labels = get_examples("test", num=num + 20, do_shuffle=shuffle)
+    gts = [ground_truth(label.split(' ')) for label in labels]
+    predictions, matching_dicts, utext, ulabels, ugts = model_testing(text, labels, gts)
+    acc, f1 = [], []
+    for i in range(len(predictions)):
+        acc.append(accuracy_score(predictions[i], ugts[i], matching_dicts[i]))
+        f1.append(f1_score(predictions[i], ugts[i], matching_dicts[i]))
     return acc, f1
 
 
@@ -147,9 +184,9 @@ def f1_score(prediction: List, labels: List, mapping: dict):
 
 def accuracy_score(prediction: List, labels: List, mapping: dict):
     tp, fn, fp, tn = prediction_metrics(
-                                        prediction,
-                                        labels,
-                                        mapping)
+        prediction,
+        labels,
+        mapping)
 
     print(f"tp {tp}, fn {fn}, fp {fp}, tn {tn}")
     return accuracy(tp, fn, fp, tn)
@@ -162,23 +199,47 @@ def F1(precision, recall):
 
 
 def accuracy(tp, fn, fp, tn):
-    return (tp+tn)/(tp+fp+fn+tn)
+    return (tp + tn) / (tp + fp + fn + tn)
 
 
 def get_precision(tp, fn, fp, tn):
     if tp == 0:
         return 0
-    return tp/(tp+fp)
+    return tp / (tp + fp)
 
 
 def get_recall(tp, fn, fp, tn):
     if tp == 0:
         return 0
-    return tp/(tp+fn)
+    return tp / (tp + fn)
+
+
+def prediction_metrics_per_label(predictions: List, labels: List, label):
+    """return TP, FN, FP, TN of n selected label.
+    preditions: predicted labels for n examples,
+    labels: ground truth labels for n examples,
+    label: the label to be evaluated"""
+    TP, FN, FP, TN = 0, 0, 0, 0
+    num = len(predictions)
+    for i in range(num):
+        cur_prediction, cur_labels = predictions[i], labels[i]
+        # if the label is in labels, check if it is predicted
+        if label in cur_labels:
+            if label in cur_prediction:
+                TP = TP + 1
+            else:
+                FN = FN + 1
+        else:
+            # if the label is not in labels, check if it is wrongly predicted
+            if label in cur_prediction:
+                FP = FP + 1
+            else:
+                TN = TN + 1
+    return TP, FN, FP, TN
 
 
 def prediction_metrics(prediction: List, labels: List, mapping: dict):
-    """return TP, FN, FP, TN of the prediction
+    """return TP, FN, FP, TN of the prediction (one prediction)
     prediction: a list of of labels for phrases
     labels: a list of simplified labels for current sentence (gt),
     mapping: a dict that maps phrase index to a list of words (idxs in
@@ -220,7 +281,7 @@ def prediction_metrics(prediction: List, labels: List, mapping: dict):
 
 def ground_truth(labels):
     """return a list of labels as ground truth"""
-    f = open("../data/jointslu/labels.csv", 'r')
+    f = open("data/jointslu/labels.csv", 'r')
     import csv
     data = csv.reader(f)
     # generate labels-gt match with dict
@@ -229,9 +290,9 @@ def ground_truth(labels):
         label2gt[line[0]] = line[1]
     gt = []
     for label in labels:
-        if label2gt[label] is not None:
+        try:
             gt.append(label2gt[label])
-        else:
+        except KeyError:
             gt.append('O')
     f.close()
     return gt
@@ -304,23 +365,18 @@ def interpret_dep(dependency_graph, ner_labels, labels, with_ner=False):
                         idxs.append(idx)
             idxs.append(address)
             idxs.sort()
-            print("idx, ", idxs)
-            matching_dict[address-1] = [i-1 for i in idxs]
-            print(f"{address-1}: {[i-1 for i in idxs]}")
+            matching_dict[address - 1] = [i - 1 for i in idxs]
             # merge phrase labels
-            print(f"label length {len(labels)}, address {address}")
-            print(labels)
-            gt = list(set([labels[i-1] for i in idxs]))
-            print("ground truth: ", gt)
+            gt = list(set([labels[i - 1] for i in idxs]))
             if len(gt) > 1 and 'O' in gt:
                 gt.remove('O')
             phrase = construct_phrase(dependency_graph, idxs)
-        elif labels[address-1] != "":
+        elif labels[address - 1] != "":
             # if skipped word has labels, also reserve
-            gt = labels[address-1]
+            gt = labels[address - 1]
         if with_ner and phrase != "":
-            if ner_labels[address-1][1] != "O":
-                phrase = phrase + ' ' + ner_labels[address-1][1]
+            if ner_labels[address - 1][1] != "O":
+                phrase = phrase + ' ' + ner_labels[address - 1][1]
         pgt.append(gt)
         phrases.append(phrase)
         address = address + 1
@@ -354,11 +410,11 @@ def dep_skip(dep):
 
 def get_examples(data_type, num=0, do_shuffle=False):
     """get example from parsing_eval/train.json"""
-    file_name = "../data/jointslu/parsing_eval/train.json"
+    file_name = "data/jointslu/parsing_eval/train.json"
     if data_type == "test":
-        file_name = "../data/jointslu/parsing_eval/test.json"
+        file_name = "data/jointslu/parsing_eval/test.json"
     elif data_type == "val":
-        file_name = "../data/jointslu/parsing_eval/val.json"
+        file_name = "data/jointslu/parsing_eval/val.json"
 
     f = open(file_name, 'r')
     import json
@@ -410,7 +466,7 @@ def accuracy_sim(predicted, gt):
     for i in range(length):
         if predicted[i] in gt[i] or predicted[i] == gt[i]:
             po_num = po_num + 1
-    return po_num/length
+    return po_num / length
 
 
 def accuracy_gt(predicted, gt):
@@ -421,10 +477,5 @@ def accuracy_gt(predicted, gt):
     for i in range(length):
         if predicted[i] == gt[i]:
             po_num = po_num + 1
-    return po_num/length
+    return po_num / length
 
-
-if __name__ == '__main__':
-    # parsing_evaluation()
-    # main()
-    plotting()
