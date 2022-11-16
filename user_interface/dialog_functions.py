@@ -1,4 +1,4 @@
-from parse.nltk_parser import corenlp_parse
+from parse.parsing import corenlp_parse
 
 
 def update_parse(text, window):

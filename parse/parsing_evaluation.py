@@ -6,9 +6,9 @@ import util
 from evaluation_utils import get_std_gt, get_std_output_parsing
 from data.data_processing import read_jointslu_labels_dict
 
-from parse.nltk_parser import dependency_parsing
-from parse.nltk_parser import name_entity_recognition as ner
-from parse.nltk_parser import part_of_speech_parsing as pos
+from parse.parsing import dependency_parsing
+from parse.parsing import name_entity_recognition as ner
+from parse.parsing import part_of_speech_parsing as pos
 
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
