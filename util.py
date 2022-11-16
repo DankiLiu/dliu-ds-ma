@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 import requests
 from nltk.parse.corenlp import CoreNLPServer
 import json
@@ -56,3 +58,35 @@ def save_jointslu_labels(new_labels):
     print("label set", data)
     with open("../data/jointslu.json", 'w') as f:
         json.dump(data, f, indent=4)
+
+
+def append_to_json(file_path, data):
+    """append new data to current json file. data is a list of json dicts"""
+    f = open(file_path, 'r+')
+    old_data = []
+    try:
+        old_data = json.load(f)  # a list of stored dicts in json file
+    except JSONDecodeError:
+        pass
+    new_data = [*old_data, *data]
+    f.seek(0)
+    json.dump(new_data, f, indent=2)
+    f.close()
+
+
+def read_from_json(path):
+    file = open(path, 'r')
+    data = json.load(file)
+    file.close()
+    return data
+
+
+def read_keys_from_json(path, *args):
+    data = read_from_json(path)
+    values = {}
+    for arg in args:
+        try:
+            values[arg] = [item[arg] for item in data]
+        except KeyError:
+            print(f"Missing key {arg} in {path} file")
+    return values
