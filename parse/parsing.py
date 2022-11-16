@@ -27,7 +27,7 @@ def dependency_parsing(text: str):
     tagged = next(parser.parse_text(text))
     tree = tagged.tree()
     tree.pprint()
-    print(tagged)
+    # print(tagged)
     # raw.pretty_print()
     # interpret_dp(raw.nodes)
     return tagged

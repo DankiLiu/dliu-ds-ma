@@ -3,6 +3,7 @@ from typing import List
 import pandas as pd
 
 import util
+from evaluation_utils import get_std_gt, get_std_output_parsing
 from data.data_processing import read_jointslu_labels_dict
 
 from parse.nltk_parser import dependency_parsing
@@ -59,72 +60,28 @@ def plotting(labels=None, acc: List = None, f1: List = None):
 
 
 def main():
-    sample_nums = [300, 1000]
-    avg_accs = []
-    avg_f1s = []
-    for i in sample_nums:
-        acc, f1 = evaluation(num=i, shuffle=True)
-        avg_acc = sum(acc) / i
-        avg_f1 = sum(f1) / i
-        avg_accs.append(avg_acc)
-        avg_f1s.append(avg_f1)
-    print(avg_accs)
-    print(avg_f1s)
+    pass
     # todo: save evaluation scores into a .csv data
 
 
 def evaluation_per_label(num, shuffle):
-    """return acc and f1 for num of tests for each specific label"""
-    # get training examples
-    text, labels = get_examples("test", num=num + 20, do_shuffle=shuffle)
+    """"""
+    # read results from file and evaluate results per label
+    pass
+
+
+def get_parsed_phrases(num, shuffle):
+    """some examples are not usable due to length of dependency graph, this function
+    returns num of examples: text, gpts and its generated phrases"""
+    text, labels = get_examples("test", num=num+20, do_shuffle=shuffle)
     gts = [ground_truth(label.split(' ')) for label in labels]
-    predictions, _, utext, ulabels, ugts = model_testing(text, labels, gts)
-    # todo: For each key (label), calculate how many times it is appeared in gt?
-    #  or is it covered in tp and tn?
-    f = open("data/jointslu/parsing_eval/par_eval_labels.csv", 'a')
-    run_example = False
-    if run_example:
-        # test label "to city"
-        TP, FN, FP, TN = prediction_metrics_per_label(predictions, ugts, "to city")
-        # store result in csv file
-        row = {
-            "label_name": "to city",
-            "num_examples": num,
-            "TP": TP,
-            "FN": FN,
-            "FP": FP,
-            "TN": TN
-        }
-        print(row)
-    else:
-        for label in LABELS:
-            TP, FN, FP, TN = prediction_metrics_per_label(predictions, ugts, label)
-            # store result in csv file
-            row = {
-                "label_name": label,
-                "num_examples": num,
-                "TP": TP,
-                "FN": FN,
-                "FP": FP,
-                "TN": TN
-            }
-            print(row)
-            # print(f"result for label {label} \n", row)
-            # writer = csv.writer(f)
-            # writer.writerow(row)
-        f.close()
-
-
-def model_testing(text, labels, gts):
-    """return the result of parsing"""
-    assert len(text) == len(labels)
-    predictions, matching_dicts, utext, ulabels, ugts = [], [], [], [], []
-    # parse examples
+    assert len(text) == len(gts)
+    utext, ugts, parsed_phrases = [], [], []
     dep_result, _, ner_result = parse_examples(text)
-    # load sbert model
-    sbert = sbert_model()
     ith_exp = 0
-    while ith_exp < len(text):
+    num_examples = 0
+    is_done = False
+    while not is_done:
         assert len(text[ith_exp].split(' ')) == len(gts[ith_exp])
         dp_graph = dep_result[ith_exp]
         ner_labels = ner_result[ith_exp]
@@ -139,38 +96,59 @@ def model_testing(text, labels, gts):
             print("length not match")
             ith_exp = ith_exp + 1
             continue
-        phrases, pgt, matching_dict = interpret_dep(dp_graph, ner_labels, gts[ith_exp], with_ner=True)
-        # store the used examples
+        phrases = interpret_dep(dp_graph, ner_labels, with_ner=True)
+        parsed_phrases.append(phrases)
         utext.append(text[ith_exp])
-        ulabels.append(labels[ith_exp])
         ugts.append(gts[ith_exp])
+        num_examples = num_examples + 1
+        ith_exp = ith_exp + 1
+        if num_examples == num:
+            is_done = True
+        elif ith_exp == len(text):
+            # if num of example is less than demand, but generated examples are all used, generate 20 more examples
+            text, labels = get_examples("test", num=20, do_shuffle=shuffle)
+            gts = [ground_truth(label.split(' ')) for label in labels]
+            ith_exp = 0
+    return utext, ugts, parsed_phrases
+
+
+def testing(num, shuffle):
+    """return the parsing predictions and used text and gts,
+    text: a list of input texts,
+    gts: a list of simplified labels as gts of the text"""
+    results = []
+    utext, ugts, parsed_phrases = get_parsed_phrases(num, shuffle)
+    assert len(utext) == num
+    # load sbert model
+    sbert = sbert_model()
+    from datetime import date
+    timestamp = str(date.today())
+    for n in range(num):
         # find label for each phrase with similarity
-        cosine_scores = cos_sim_per_example(phrases, LABELS, sbert)
+        cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
-        predicted = [LABELS[idx] for idx in label_idxs]
-        predictions.append(predicted)
-        matching_dicts.append(matching_dict)
-        print("text: ", text[ith_exp])
-        print("labels: ", labels[ith_exp])
-        print("phrases: ", phrases)
-        print("ground truth: ", gts[ith_exp])
-        print("predicted: ", predicted)
-    assert len(predictions) == len(utext)
-    assert len(predictions) == len(ulabels)
-    return predictions, matching_dicts, utext, ulabels, ugts
+        prediction = [LABELS[idx] for idx in label_idxs]
+        std_output = get_std_output_parsing(parsed_phrases[n], prediction)
+        std_gt = get_std_gt(utext[n], ugts[n])
+        # todo: construct ground truth
+        result = {
+            "time_stamp": timestamp,
+            "text": utext[n],
+            "gt": ugts[n],
+            "phrase": parsed_phrases[n],
+            "prediction": prediction,
+            "std_output": std_output,
+            "std_gt": std_gt
+        }
+        print(f"result for {n}th example ", result)
+        results.append(result)
+    util.append_to_json("data/jointslu/parsing_eval/parsing_output.json", results)
 
 
 def evaluation(num=1, shuffle=True, pos=True, ner=True):
     """Evaluate parsing with all labels"""
-    # get training examples
-    text, labels = get_examples("test", num=num + 20, do_shuffle=shuffle)
-    gts = [ground_truth(label.split(' ')) for label in labels]
-    predictions, matching_dicts, utext, ulabels, ugts = model_testing(text, labels, gts)
-    acc, f1 = [], []
-    for i in range(len(predictions)):
-        acc.append(accuracy_score(predictions[i], ugts[i], matching_dicts[i]))
-        f1.append(f1_score(predictions[i], ugts[i], matching_dicts[i]))
-    return acc, f1
+    # read results from file and evaluate the parsing method
+    pass
 
 
 def f1_score(prediction: List, labels: List, mapping: dict):
@@ -223,6 +201,8 @@ def prediction_metrics_per_label(predictions: List, labels: List, label):
     num = len(predictions)
     for i in range(num):
         cur_prediction, cur_labels = predictions[i], labels[i]
+        print(cur_prediction)
+        print(cur_labels)
         # if the label is in labels, check if it is predicted
         if label in cur_labels:
             if label in cur_prediction:
@@ -340,10 +320,9 @@ def get_label_set():
     return list(labels)
 
 
-def interpret_dep(dependency_graph, ner_labels, labels, with_ner=False):
+def interpret_dep(dependency_graph, ner_labels, with_ner=False):
     """return a list of phrases constructed from dependency graph"""
     phrases = []
-    pgt = []
     address = 1
     # if current index has phrase, create a list of the words in the phrase
     # and store under the index key
@@ -365,22 +344,13 @@ def interpret_dep(dependency_graph, ner_labels, labels, with_ner=False):
                         idxs.append(idx)
             idxs.append(address)
             idxs.sort()
-            matching_dict[address - 1] = [i - 1 for i in idxs]
-            # merge phrase labels
-            gt = list(set([labels[i - 1] for i in idxs]))
-            if len(gt) > 1 and 'O' in gt:
-                gt.remove('O')
             phrase = construct_phrase(dependency_graph, idxs)
-        elif labels[address - 1] != "":
-            # if skipped word has labels, also reserve
-            gt = labels[address - 1]
         if with_ner and phrase != "":
             if ner_labels[address - 1][1] != "O":
                 phrase = phrase + ' ' + ner_labels[address - 1][1]
-        pgt.append(gt)
         phrases.append(phrase)
         address = address + 1
-    return phrases, pgt, matching_dict
+    return phrases
 
 
 def construct_phrase(dependency_graph, idxs):
@@ -478,4 +448,5 @@ def accuracy_gt(predicted, gt):
         if predicted[i] == gt[i]:
             po_num = po_num + 1
     return po_num / length
+
 
