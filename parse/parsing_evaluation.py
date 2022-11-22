@@ -3,8 +3,7 @@ from typing import List
 import pandas as pd
 
 import util
-from evaluation_utils import get_std_gt, get_std_output_parsing
-from data.data_processing import read_jointslu_labels_dict
+from evaluation.evaluation_utils import get_std_gt, get_std_output_parsing
 
 from parse.parsing import dependency_parsing
 from parse.parsing import name_entity_recognition as ner
@@ -17,7 +16,6 @@ import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
-import csv
 
 # same labels as in pre-train
 f = open("data/jointslu/pre-train/labels.json")
@@ -44,7 +42,7 @@ def phrases_from_dep_graph(words, dep_graph):
 
 
 def plotting(labels=None, acc: List = None, f1: List = None):
-    df = pd.read_csv("../data/jointslu/parsing_eval/scores.csv")
+    df = pd.read_csv("../data/jointslu/parsing/scores.csv")
     print(df.head())
     ndf = df.loc[df["num of examples"] == 1000]
     plt.ylim(0, 1.0)
@@ -142,7 +140,7 @@ def testing(num, shuffle):
         }
         print(f"result for {n}th example ", result)
         results.append(result)
-    util.append_to_json("data/jointslu/parsing_eval/parsing_output.json", results)
+    util.append_to_json("data/jointslu/parsing/parsing_output.json", results)
 
 
 def evaluation(num=1, shuffle=True, pos=True, ner=True):
@@ -379,12 +377,12 @@ def dep_skip(dep):
 
 
 def get_examples(data_type, num=0, do_shuffle=False):
-    """get example from parsing_eval/train.json"""
-    file_name = "data/jointslu/parsing_eval/train.json"
+    """get example from parsing/train.json"""
+    file_name = "data/jointslu/parsing/train.json"
     if data_type == "test":
-        file_name = "data/jointslu/parsing_eval/test.json"
+        file_name = "data/jointslu/parsing/test.json"
     elif data_type == "val":
-        file_name = "data/jointslu/parsing_eval/val.json"
+        file_name = "data/jointslu/parsing/val.json"
 
     f = open(file_name, 'r')
     import json
