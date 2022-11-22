@@ -4,7 +4,7 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 
-from evaluation_utils import get_std_gt
+from evaluation.evaluation_utils import get_std_gt
 
 
 def load_examples():
@@ -59,7 +59,7 @@ def get_example_by_sim(texts: List, examples):
 def get_examples_gpt3(data_type="train", num=1, do_shuffle=True):
     """return a list of text and a list of its corresponding labels,
     return one example by default"""
-    # get example from parsing_eval/train.json by default
+    # get example from parsing/train.json by default
     file_name = "data/jointslu/pre-train/b_train.json"
     if data_type == "test":
         file_name = "data/jointslu/pre-train/b_test.json"

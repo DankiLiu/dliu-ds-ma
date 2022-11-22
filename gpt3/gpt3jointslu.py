@@ -1,14 +1,12 @@
 from random import randint
 from typing import List
 
-from evaluation_utils import get_std_gt, std_gpt3_example
+from evaluation.evaluation_utils import get_std_gt, std_gpt3_example
 from gpt3.gpt3_util import get_example_by_sim, load_examples, \
     construct_oneshot_example, get_examples_gpt3, get_oneshot_prompt
 import openai
 import os
-import json
 
-from parse.parsing_evaluation import get_examples
 from util import append_to_json
 
 API_KEY = os.environ.get('OPENAI_API_KEY')
