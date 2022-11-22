@@ -140,7 +140,7 @@ def gpt3_from_bert_dataset():
 
 def create_training_data(shuffle=False):
     """create data for parsing from "bert_***.json" without bos and eos
-    and store them in parsing_eval folder"""
+    and store them in parsing folder"""
     # read bert_train.json
     f = open("../data/jointslu/bert_train.json", 'r')
     import json
@@ -159,7 +159,7 @@ def create_training_data(shuffle=False):
         new_data.append(new_i)
     f.close()
     # store in file
-    with open("../data/jointslu/parsing_eval/train.json", 'w') as f:
+    with open("jointslu/parsing/train.json", 'w') as f:
         json.dump(new_data,
                   f,
                   indent=4)
