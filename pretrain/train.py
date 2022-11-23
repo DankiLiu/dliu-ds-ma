@@ -8,10 +8,14 @@ from transformers import AutoTokenizer, BertTokenizer
 from data.data_processing import store_jointslu_labels
 from pretrain.model_lightning import LitBertTokenClassification
 from pretrain.jointslu_data_module import JointsluDataModule
+from evaluation.evaluation_utils import get_std_gt
 from pathlib import Path
 
 
 # Update labels again if training dataset is generated
+from util import append_to_json
+
+
 def update_label():
     store_jointslu_labels()
 
@@ -52,20 +56,60 @@ def auto_lr_bz_train():
     trainer.fit(model, datamodule=data_module)
 
 
-def load_from_checkpoint():
-    tokenizer = define_tokenizer()
-    model = LitBertTokenClassification(tokenizer=tokenizer)
-    data_module = JointsluDataModule(tokenizer=tokenizer)
-    trainer = Trainer()
-    current_path =str(Path().absolute())
-    chk_path = Path(current_path + "/pretrain/model_sim/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt")
-    print(chk_path)
-    trained_model = model.load_from_checkpoint(chk_path, tokenizer=tokenizer)
-    results = trainer.test(model=trained_model, datamodule=data_module, verbose=True)
+def load_from_checkpoint(tokenizer, model,
+                         path="/pretrain/auto_sim/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt"):
 
-    # prediction =
-    print(results)
+    current_path =str(Path().absolute())
+    # path = "/pretrain/auto_sim/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt"
+    chk_path = Path(current_path + path)
+    # print("check point path: ", chk_path)
+    trained_model = model.load_from_checkpoint(chk_path, tokenizer=tokenizer)
+    return trained_model
+
+
+def predict(batch_size):
+    tokenizer = define_tokenizer()
+    model = LitBertTokenClassification(tokenizer=tokenizer, batch_size=batch_size)
+    data_module = JointsluDataModule(tokenizer=tokenizer)
+    # get trained model
+    trained_model = load_from_checkpoint(tokenizer, model)
+    trainer = Trainer()
+    results = trainer.predict(model=trained_model, datamodule=data_module)
+    print("results shape ", results)
+    print("results=============", results)
+    post_processing(results)
+    return results
+
+
+def post_processing(results):
+    """data is results from finetuned bert model, generate std_gt and std_prediction and store in file."""
+    # results is a list of result:
+    #            result = {
+    #            "text": input_token,
+    #            "gt": gt,
+    #            "prediction": prediction}
+    post_precessed = []
+    from datetime import date
+    timestamp = str(date.today())
+    for nth_prediction in results:
+        for r in nth_prediction:
+            text = r["text"]
+            gt = r["gt"]
+            prediction = r["prediction"]
+            std_gt = get_std_gt(text, gt)
+            std_output = get_std_gt(text, prediction)
+            new_dict = {
+                "timestamp": timestamp,
+                "text": text,
+                "gt": gt,
+                "prediction": prediction,
+                "std_output": std_output,
+                "std_gt": std_gt
+            }
+            print(new_dict, '\n')
+            post_precessed.append(new_dict)
+    append_to_json(file_path="../data/jointslu/pre-train/pretrain_output.json", data=post_precessed)
 
 
 if __name__ == '__main__':
-    train()
+    predict(batch_size=1)
