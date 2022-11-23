@@ -19,8 +19,8 @@ class LitBertTokenClassification(pl.LightningModule):
     def forward(self,
                 input_ids,
                 labels):
-        print(f"input_ids: {input_ids}")
-        print(f"labels   : {labels}")
+        # print(f"input_ids: {input_ids}")
+        # print(f"labels   : {labels}")
         assert len(input_ids) == len(labels)
         response = self.model(input_ids=input_ids,
                               labels=labels)
@@ -47,31 +47,53 @@ class LitBertTokenClassification(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         input_ids, labels = batch["input_ids"], batch["labels"]
         output = self.model(input_ids=input_ids)
-        print(input_ids)
-        print(output)
+        # print(input_ids)
+        # print(output.logits.size())
         # decode the labels
         labels_dict = lbd()
         new_dict = dict((v, k) for k, v in labels_dict.items())
+        # print(new_dict)
         results = []
         for i in range(len(input_ids)):
-            # for each example
+            token_num = len(input_ids[i])
+            # reconstruct text and labels without bos and eos
+            input_token = self.tokenizer.convert_ids_to_tokens(input_ids[i])[1:token_num-1]
+            gt = [new_dict[label_id] for label_id in labels[i][1:token_num-1].tolist()]
+            # decode output
             m = torch.nn.Softmax(dim=1)
             label_ids = m(output.logits[i]).tolist()
-            print(label_ids)
-            print(f"label ids after softmax \nlabel ids: {label_ids}")
-            predictions = [labels_dict.index(label_id) for label_id in label_ids]
-            print("predictions shape ", len(predictions))
-            print(predictions)
-            exit()
-            labels = []
-            input_token = self.tokenizer.convert_ids_to_tokens(input_ids[i])
-            for index in predictions:
-                labels.append(new_dict[index])
+            prediction = [new_dict[label_id.index(max(label_id))] for label_id in label_ids][1: token_num-1]
+            assert len(gt) == len(prediction)
+            result = {
+                "text": ' '.join(input_token),
+                "gt": gt,
+                "prediction": prediction}
+            # print("-----result----\n")
+            results.append(result)
+        return results
 
-            result = {"input_token": input_token,
-                      "labels": labels}
-            print("-----result----\n")
-            print(result)
+    def predict_step(self, batch, batch_idx, dataloader_idx: int = 0):
+        input_ids, labels = batch["input_ids"], batch["labels"]
+        output = self.model(input_ids=input_ids)
+        labels_dict = lbd()
+        new_dict = dict((v, k) for k, v in labels_dict.items())
+        # print(new_dict)
+        results = []
+        for i in range(len(input_ids)):
+            token_num = len(input_ids[i])
+            # reconstruct text and labels without bos and eos
+            input_token = self.tokenizer.convert_ids_to_tokens(input_ids[i])[1:token_num-1]
+            gt = [new_dict[label_id] for label_id in labels[i][1:token_num-1].tolist()]
+            # decode output
+            m = torch.nn.Softmax(dim=1)
+            label_ids = m(output.logits[i]).tolist()
+            prediction = [new_dict[label_id.index(max(label_id))] for label_id in label_ids][1: token_num-1]
+            assert len(gt) == len(prediction)
+            result = {
+                "text": ' '.join(input_token),
+                "gt": gt,
+                "prediction": prediction}
+            # print("-----result----\n")
             results.append(result)
         return results
 

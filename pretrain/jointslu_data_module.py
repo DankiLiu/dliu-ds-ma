@@ -20,17 +20,6 @@ class JointsluDataModule(pl.LightningDataModule):
         """Read data from disk and convert it to
         train.json, test.json and val.json"""
         pass
-        """
-        train_val_lines = read_jointslu_lines("../data/atis.train.w-intent.iob")
-        test_lines = read_jointslu_lines("../data/atis.test.w-intent.iob")
-        length = len(train_val_lines)
-        # split the data 8:2
-        train_length = int(0.8 * length)
-        construct_jointslu_data("train", train_val_lines[0:train_length])
-        construct_jointslu_data("val", train_val_lines[train_length:])
-        construct_jointslu_data("test", test_lines)
-        store_jointslu_labels()
-        """
 
     def setup(self, stage=None):
         """Load the data"""
@@ -58,6 +47,13 @@ class JointsluDataModule(pl.LightningDataModule):
                           collate_fn=self.val_dataset.collate_dia_samples)
 
     def test_dataloader(self):
+        return DataLoader(self.test_dataset,
+                          batch_size=self.test_bsz,
+                          shuffle=False,
+                          drop_last=True,
+                          collate_fn=self.test_dataset.collate_dia_samples)
+
+    def predict_dataloader(self):
         return DataLoader(self.test_dataset,
                           batch_size=self.test_bsz,
                           shuffle=False,
