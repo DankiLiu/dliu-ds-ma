@@ -1,0 +1,152 @@
+[
+  {
+    "time_stamp": "2022-11-15",
+    "text": "i need a morning flight from burbank to milwaukee on next monday",
+    "gt": [
+      "O",
+      "O",
+      "O",
+      "depart time",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "O",
+      "depart time",
+      "depart date"
+    ],
+    "phrase": [
+      "",
+      "",
+      "",
+      "",
+      "morning flight",
+      "",
+      "from burbank",
+      "",
+      "to milwaukee",
+      "",
+      "",
+      "on next monday DATE"
+    ],
+    "prediction": [
+      "O",
+      "O",
+      "O",
+      "O",
+      "flight time",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "O",
+      "O",
+      "arrive date"
+    ],
+    "std_output": "flight time: morning flight; from city: from burbank; to city: to milwaukee; arrive date: on next monday DATE",
+    "std_gt": "depart time: morning next; from city: burbank; to city: milwaukee; depart date: monday; "
+  },
+  {
+    "time_stamp": "2022-11-15",
+    "text": "what is the shortest flight from milwaukee to san diego",
+    "gt": [
+      "O",
+      "O",
+      "O",
+      "superlative",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "to city"
+    ],
+    "phrase": [
+      "what",
+      "",
+      "",
+      "",
+      "shortest flight",
+      "",
+      "from milwaukee",
+      "",
+      "",
+      "to san diego"
+    ],
+    "prediction": [
+      "economy",
+      "O",
+      "O",
+      "O",
+      "flight time",
+      "O",
+      "from city",
+      "O",
+      "O",
+      "to city"
+    ],
+    "std_output": "economy: what; flight time: shortest flight; from city: from milwaukee; to city: to san diego",
+    "std_gt": "superlative: shortest; from city: milwaukee; to city: san diego; "
+  },
+  {
+    "time_stamp": "2022-11-15",
+    "text": "give me the flights from phoenix to milwaukee",
+    "gt": [
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city"
+    ],
+    "phrase": [
+      "",
+      "",
+      "",
+      "flights",
+      "",
+      "from phoenix",
+      "",
+      "to milwaukee"
+    ],
+    "prediction": [
+      "O",
+      "O",
+      "O",
+      "flight days",
+      "O",
+      "from city",
+      "O",
+      "to city"
+    ],
+    "std_output": "flight days: flights; from city: from phoenix; to city: to milwaukee",
+    "std_gt": "from city: phoenix; to city: milwaukee; "
+  },
+  {
+    "time_stamp": "2022-11-15",
+    "text": "which airline is us",
+    "gt": [
+      "O",
+      "O",
+      "O",
+      "airline code"
+    ],
+    "phrase": [
+      "",
+      "airline",
+      "",
+      "us"
+    ],
+    "prediction": [
+      "O",
+      "airline name",
+      "O",
+      "to state"
+    ],
+    "std_output": "airline name: airline; to state: us",
+    "std_gt": "airline code: us; "
+  }
+]

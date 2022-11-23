@@ -1,0 +1,156 @@
+[
+  {
+    "timestamp": "2022-11-16",
+    "text": "list flights from orlando to tacoma on saturday of fare basis code of q",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "O",
+      "depart date",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "fare basis code"
+    ],
+    "exp_text": "what are the nonstop flights on america west or southwest air from kansas city to burbank on saturday may twenty two",
+    "exp_gt": "flight stop: nonstop; airline name: america west southwest; alternative: or; from city: kansas city; to city: burbank; arrive date: saturday twenty two; return date: may; ",
+    "prediction": "\n\nThe user is looking for flights from Orlando to Tacoma on Saturday that have a fare basis code of Q.",
+    "std_gt": "from city: orlando; to city: tacoma; depart date: saturday; fare basis code: q; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "text": "show me the cheapest one way flights from montreal to orlando",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "relative cost",
+      "round trip",
+      "round trip",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city"
+    ],
+    "exp_text": "cheapest airfare from tacoma to orlando",
+    "exp_gt": "relative cost: cheapest; from city: tacoma; to city: orlando; ",
+    "prediction": "\n\nrelative cost: cheapest; from city: montreal; to city: orlando;",
+    "std_gt": "relative cost: cheapest; round trip: one way; from city: montreal; to city: orlando; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "text": "what are the american flights from newark to nashville",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "airline name",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city"
+    ],
+    "exp_text": "are there any flights from boston to san francisco which stop in washington dc",
+    "exp_gt": "from city: boston; to city: san francisco; stop city: washington; stop state: dc; ",
+    "prediction": "\n\nThe user is looking for American flights from Newark to Nashville.",
+    "std_gt": "airline name: american; from city: newark; to city: nashville; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "text": "i need a flight departing from milwaukee to indianapolis leaving monday before 8 am",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "O",
+      "depart date",
+      "depart time",
+      "depart time",
+      "depart time"
+    ],
+    "exp_text": "what flights are available from pittsburgh to baltimore on thursday morning",
+    "exp_gt": "from city: pittsburgh; to city: baltimore; depart date: thursday; depart time: morning; ",
+    "prediction": "\n\nfrom city: milwaukee; to city: indianapolis; depart date: monday; depart time: before 8 am",
+    "std_gt": "from city: milwaukee; to city: indianapolis; depart date: monday; depart time: before 8 am; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "text": "what is the most expensive one way fare between detroit and westchester county",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "relative cost",
+      "relative cost",
+      "round trip",
+      "round trip",
+      "O",
+      "O",
+      "from city",
+      "O",
+      "to city",
+      "to city"
+    ],
+    "exp_text": "cheapest airfare from tacoma to orlando",
+    "exp_gt": "relative cost: cheapest; from city: tacoma; to city: orlando; ",
+    "prediction": "\n\nrelative cost: most expensive; from city: detroit; to city: westchester county",
+    "std_gt": "relative cost: most expensive; round trip: one way; from city: detroit; to city: westchester county; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "prompt": {
+      "name": "PROMPT_3",
+      "text": "Please summary the intention of the user in keyword form from the input text, an example is given: \n"
+    },
+    "exp_text": "what flights are available from pittsburgh to baltimore on thursday morning",
+    "exp_gt": "from city: pittsburgh; to city: baltimore; depart date: thursday; depart time: morning; ",
+    "text": "what airlines serve denver",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "in city"
+    ],
+    "prediction": "\n\nThe user wants to know which airlines serve Denver.",
+    "std_gt": "in city: denver; "
+  },
+  {
+    "timestamp": "2022-11-16",
+    "prompt": {
+      "name": "PROMPT_3",
+      "text": "Please summary the intention of the user in keyword form from the input text, an example is given: \n"
+    },
+    "exp_text": "flights from newark new jersey to cleveland ohio",
+    "exp_gt": "from city: newark; from location: new; from state: jersey; to city: cleveland; to state: ohio; ",
+    "text": "which different airlines go from las vegas to new york city",
+    "labels": [
+      "O",
+      "O",
+      "O",
+      "O",
+      "O",
+      "from city",
+      "from city",
+      "O",
+      "to city",
+      "to city",
+      "to city"
+    ],
+    "prediction": "\n\nThe user is looking for different airlines that fly from Las Vegas to New York City.",
+    "std_gt": "from city: las vegas; to city: new york city; "
+  }
+]
