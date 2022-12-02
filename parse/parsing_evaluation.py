@@ -71,15 +71,15 @@ def evaluation_per_label(num, shuffle):
 def get_parsed_phrases(num, shuffle):
     """some examples are not usable due to length of dependency graph, this function
     returns num of examples: text, gpts and its generated phrases"""
-    text, labels = get_examples("test", num=num+20, do_shuffle=shuffle)
+    text, labels = get_examples("test", num=num, do_shuffle=shuffle)
     gts = [ground_truth(label.split(' ')) for label in labels]
     assert len(text) == len(gts)
     utext, ugts, parsed_phrases = [], [], []
     dep_result, _, ner_result = parse_examples(text)
-    ith_exp = 0
-    num_examples = 0
-    is_done = False
-    while not is_done:
+    # ith_exp = 0
+    # num_examples = 0
+    # is_done = False
+    for ith_exp in range(len(text)):
         assert len(text[ith_exp].split(' ')) == len(gts[ith_exp])
         dp_graph = dep_result[ith_exp]
         ner_labels = ner_result[ith_exp]
@@ -92,21 +92,23 @@ def get_parsed_phrases(num, shuffle):
         # if length not match, skip this example
         if address != len(gts[ith_exp]):
             print("length not match")
-            ith_exp = ith_exp + 1
+            # ith_exp = ith_exp + 1
             continue
         phrases = interpret_dep(dp_graph, ner_labels, with_ner=True)
         parsed_phrases.append(phrases)
         utext.append(text[ith_exp])
         ugts.append(gts[ith_exp])
+        '''
         num_examples = num_examples + 1
         ith_exp = ith_exp + 1
         if num_examples == num:
             is_done = True
         elif ith_exp == len(text):
             # if num of example is less than demand, but generated examples are all used, generate 20 more examples
-            text, labels = get_examples("test", num=20, do_shuffle=shuffle)
+            text, labels = get_examples("test", num=20, do_shuffle=True)
             gts = [ground_truth(label.split(' ')) for label in labels]
             ith_exp = 0
+        '''
     return utext, ugts, parsed_phrases
 
 
@@ -116,12 +118,13 @@ def testing(num, shuffle):
     gts: a list of simplified labels as gts of the text"""
     results = []
     utext, ugts, parsed_phrases = get_parsed_phrases(num, shuffle)
-    assert len(utext) == num
+    print(f"parsing predicting {len(utext)} tests. ")
+    length = len(utext)
     # load sbert model
     sbert = sbert_model()
     from datetime import date
     timestamp = str(date.today())
-    for n in range(num):
+    for n in range(length):
         # find label for each phrase with similarity
         cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
@@ -141,6 +144,7 @@ def testing(num, shuffle):
         print(f"result for {n}th example ", result)
         results.append(result)
     util.append_to_json("data/jointslu/parsing/parsing_output.json", results)
+    print(f"{len(results)} results appended to parsing_output.json")
 
 
 def evaluation(num=1, shuffle=True, pos=True, ner=True):
@@ -389,7 +393,7 @@ def get_examples(data_type, num=0, do_shuffle=False):
     from random import shuffle
     # todo: not a real shuffle
     data = json.load(f)
-    length = len(data) if num == 0 else num
+    length = len(data) if num == 0 or num > len(data) else num
     print("get ", length, " examples")
     if do_shuffle:
         shuffle(data)
