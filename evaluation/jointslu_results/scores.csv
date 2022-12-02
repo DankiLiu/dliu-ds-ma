@@ -1,0 +1,419 @@
+model_name,label_name,key_counter,exp_counter,cor,par,inc,mis,spu
+gpt3,atis capacity,0,500,0,0,0,0,0
+gpt3,to contuntry,1,500,0,0,0,1,0
+gpt3,relative to today,1,500,0,0,0,0,1
+gpt3,fare basis code,6,500,0,0,0,6,0
+gpt3,stop location,0,500,0,0,0,0,0
+gpt3,connect,5,500,0,0,0,5,0
+gpt3,airline name,48,500,5,0,0,43,0
+gpt3,class type,11,500,1,0,0,10,0
+gpt3,fare amount,0,500,0,0,0,0,0
+gpt3,to city,424,500,186,31,0,201,6
+gpt3,state name,1,500,0,0,0,1,0
+gpt3,to state code,14,500,0,0,0,14,0
+gpt3,alternative,1,500,0,0,0,1,0
+gpt3,arrive time end,1,500,0,0,0,1,0
+gpt3,relative cost,36,500,17,0,0,8,11
+gpt3,atis flight,0,500,0,0,0,0,0
+gpt3,aircraft code,11,500,0,0,0,11,0
+gpt3,flight stop,8,500,0,0,0,8,0
+gpt3,relative time,0,500,0,0,0,0,0
+gpt3,airport code,4,500,0,0,0,4,0
+gpt3,atis meal,0,500,0,0,0,0,0
+gpt3,to airport,5,500,0,0,0,4,1
+gpt3,economy,0,500,0,0,0,0,0
+gpt3,stop city,13,500,0,0,0,13,0
+gpt3,airport name,14,500,0,0,0,14,0
+gpt3,meal code,1,500,0,0,0,1,0
+gpt3,ground fare,0,500,0,0,0,0,0
+gpt3,arrive time start,0,500,0,0,0,0,0
+gpt3,superlative,18,500,0,0,0,18,0
+gpt3,O,0,500,0,0,0,0,0
+gpt3,restriction code,2,500,0,0,0,2,0
+gpt3,stop state,0,500,0,0,0,0,0
+gpt3,at time,3,500,0,0,0,0,3
+gpt3,meal,7,500,0,0,0,6,1
+gpt3,ground service,0,500,0,0,0,0,0
+gpt3,from state,26,500,0,0,0,21,5
+gpt3,atis restriction,0,500,0,0,0,0,0
+gpt3,state code,3,500,0,0,0,1,2
+gpt3,atis airfare,0,500,0,0,0,0,0
+gpt3,atis abbreviation,0,500,0,0,0,0,0
+gpt3,number of days,0,500,0,0,0,0,0
+gpt3,atis airline,0,500,0,0,0,0,0
+gpt3,depart time,123,500,43,8,1,60,11
+gpt3,days code,1,500,0,0,0,1,0
+gpt3,arrive date,20,500,2,2,0,10,6
+gpt3,in city,30,500,3,0,0,27,0
+gpt3,atis quantity,0,500,0,0,0,0,0
+gpt3,depart date,171,500,53,1,7,98,12
+gpt3,from airport,9,500,0,0,0,9,0
+gpt3,flight time,5,500,0,0,0,1,4
+gpt3,flight days,8,500,0,0,0,5,3
+gpt3,period of day,2,500,0,0,0,2,0
+gpt3,return time,0,500,0,0,0,0,0
+gpt3,atis airport,0,500,0,0,0,0,0
+gpt3,atis aircraft,0,500,0,0,0,0,0
+gpt3,to state,24,500,0,0,0,20,4
+gpt3,airline code,25,500,1,2,0,12,10
+gpt3,flight number,10,500,2,0,0,7,1
+gpt3,return date,8,500,0,0,0,7,1
+gpt3,meal description,8,500,0,0,0,8,0
+gpt3,atis cheapest,0,500,0,0,0,0,0
+gpt3,arrive time,32,500,4,0,0,26,2
+gpt3,atis distance,0,500,0,0,0,0,0
+gpt3,from location,20,500,0,0,0,18,2
+gpt3,month,0,500,0,0,0,0,0
+gpt3,day name,2,500,0,0,0,2,0
+gpt3,round trip,37,500,0,0,11,26,0
+gpt3,from city,425,500,187,31,1,202,4
+gpt3,transport type,8,500,0,0,0,8,0
+parsing,atis capacity,4,500,0,0,0,0,4
+parsing,to contuntry,1,500,0,0,0,1,0
+parsing,relative to today,1,500,0,0,0,0,1
+parsing,fare basis code,5,500,0,2,0,3,0
+parsing,stop location,0,500,0,0,0,0,0
+parsing,connect,26,500,2,0,0,3,21
+parsing,airline name,58,500,1,11,4,29,13
+parsing,class type,16,500,1,1,1,8,5
+parsing,fare amount,33,500,0,0,0,0,33
+parsing,to city,428,500,0,247,34,135,12
+parsing,state name,49,500,0,0,2,4,43
+parsing,to state code,15,500,0,0,0,14,1
+parsing,alternative,3,500,0,0,0,1,2
+parsing,arrive time end,3,500,0,0,0,1,2
+parsing,relative cost,18,500,1,0,0,16,1
+parsing,atis flight,3,500,0,0,0,0,3
+parsing,aircraft code,12,500,0,3,0,8,1
+parsing,flight stop,42,500,1,7,0,0,34
+parsing,relative time,2,500,0,0,0,0,2
+parsing,airport code,5,500,0,0,0,5,0
+parsing,atis meal,0,500,0,0,0,0,0
+parsing,to airport,50,500,0,1,0,3,46
+parsing,economy,42,500,0,0,0,0,42
+parsing,stop city,12,500,0,0,2,10,0
+parsing,airport name,20,500,0,0,0,15,5
+parsing,meal code,1,500,0,1,0,0,0
+parsing,ground fare,3,500,0,0,0,0,3
+parsing,arrive time start,47,500,0,0,0,0,47
+parsing,superlative,23,500,0,0,0,18,5
+parsing,O,5,500,0,0,0,0,5
+parsing,restriction code,2,500,0,0,0,2,0
+parsing,stop state,2,500,0,0,0,0,2
+parsing,at time,43,500,0,0,0,0,43
+parsing,meal,10,500,1,4,0,1,4
+parsing,ground service,16,500,0,0,0,0,16
+parsing,from state,66,500,0,15,0,5,46
+parsing,atis restriction,0,500,0,0,0,0,0
+parsing,state code,0,500,0,0,0,0,0
+parsing,atis airfare,5,500,0,0,0,0,5
+parsing,atis abbreviation,2,500,0,0,0,0,2
+parsing,number of days,3,500,0,0,0,0,3
+parsing,atis airline,9,500,0,0,0,0,9
+parsing,depart time,128,500,0,2,28,91,7
+parsing,days code,2,500,0,0,0,1,1
+parsing,arrive date,90,500,0,4,1,9,76
+parsing,in city,101,500,0,15,4,4,78
+parsing,atis quantity,5,500,0,0,0,0,5
+parsing,depart date,161,500,0,7,3,151,0
+parsing,from airport,20,500,0,5,0,3,12
+parsing,flight time,100,500,0,0,0,1,99
+parsing,flight days,182,500,0,5,0,0,177
+parsing,period of day,12,500,0,1,0,1,10
+parsing,return time,1,500,0,0,0,0,1
+parsing,atis airport,0,500,0,0,0,0,0
+parsing,atis aircraft,7,500,0,0,0,0,7
+parsing,to state,46,500,0,5,0,15,26
+parsing,airline code,16,500,0,0,0,14,2
+parsing,flight number,94,500,0,5,0,4,85
+parsing,return date,8,500,0,1,0,6,1
+parsing,meal description,7,500,0,0,0,7,0
+parsing,atis cheapest,0,500,0,0,0,0,0
+parsing,arrive time,39,500,0,3,8,19,9
+parsing,atis distance,3,500,0,0,0,0,3
+parsing,from location,41,500,0,1,0,16,24
+parsing,month,34,500,0,0,0,0,34
+parsing,day name,11,500,0,1,0,1,9
+parsing,round trip,34,500,7,15,0,11,1
+parsing,from city,423,500,4,307,20,87,5
+parsing,transport type,9,500,0,0,0,6,3
+pre-train,atis capacity,0,500,0,0,0,0,0
+pre-train,to contuntry,1,500,0,0,0,1,0
+pre-train,relative to today,0,500,0,0,0,0,0
+pre-train,fare basis code,11,500,5,0,0,0,6
+pre-train,stop location,0,500,0,0,0,0,0
+pre-train,connect,5,500,1,0,0,4,0
+pre-train,airline name,71,500,31,16,0,0,24
+pre-train,class type,16,500,1,5,0,5,5
+pre-train,fare amount,0,500,0,0,0,0,0
+pre-train,to city,424,500,309,45,6,57,7
+pre-train,state name,1,500,0,0,0,1,0
+pre-train,to state code,14,500,10,0,0,4,0
+pre-train,alternative,3,500,1,0,0,0,2
+pre-train,arrive time end,1,500,0,0,0,1,0
+pre-train,relative cost,23,500,22,1,0,0,0
+pre-train,atis flight,0,500,0,0,0,0,0
+pre-train,aircraft code,11,500,0,0,0,11,0
+pre-train,flight stop,8,500,8,0,0,0,0
+pre-train,relative time,0,500,0,0,0,0,0
+pre-train,airport code,4,500,0,0,0,4,0
+pre-train,atis meal,0,500,0,0,0,0,0
+pre-train,to airport,10,500,2,0,0,2,6
+pre-train,economy,0,500,0,0,0,0,0
+pre-train,stop city,16,500,7,3,0,3,3
+pre-train,airport name,16,500,0,0,0,16,0
+pre-train,meal code,1,500,0,0,0,1,0
+pre-train,ground fare,0,500,0,0,0,0,0
+pre-train,arrive time start,0,500,0,0,0,0,0
+pre-train,superlative,18,500,11,1,0,6,0
+pre-train,O,0,500,0,0,0,0,0
+pre-train,restriction code,2,500,0,2,0,0,0
+pre-train,stop state,0,500,0,0,0,0,0
+pre-train,at time,0,500,0,0,0,0,0
+pre-train,meal,6,500,2,0,0,4,0
+pre-train,ground service,0,500,0,0,0,0,0
+pre-train,from state,21,500,17,0,0,4,0
+pre-train,atis restriction,0,500,0,0,0,0,0
+pre-train,state code,1,500,1,0,0,0,0
+pre-train,atis airfare,0,500,0,0,0,0,0
+pre-train,atis abbreviation,0,500,0,0,0,0,0
+pre-train,number of days,0,500,0,0,0,0,0
+pre-train,atis airline,0,500,0,0,0,0,0
+pre-train,depart time,122,500,96,12,1,7,6
+pre-train,days code,1,500,0,0,0,1,0
+pre-train,arrive date,18,500,5,2,0,7,4
+pre-train,in city,48,500,17,3,0,9,19
+pre-train,atis quantity,0,500,0,0,0,0,0
+pre-train,depart date,170,500,144,11,1,6,8
+pre-train,from airport,9,500,1,0,0,8,0
+pre-train,flight time,1,500,0,1,0,0,0
+pre-train,flight days,5,500,5,0,0,0,0
+pre-train,period of day,2,500,0,0,0,2,0
+pre-train,return time,0,500,0,0,0,0,0
+pre-train,atis airport,0,500,0,0,0,0,0
+pre-train,atis aircraft,0,500,0,0,0,0,0
+pre-train,to state,20,500,8,0,0,12,0
+pre-train,airline code,16,500,7,0,0,8,1
+pre-train,flight number,9,500,1,0,1,7,0
+pre-train,return date,7,500,1,0,0,6,0
+pre-train,meal description,8,500,3,0,0,5,0
+pre-train,atis cheapest,0,500,0,0,0,0,0
+pre-train,arrive time,39,500,18,8,2,2,9
+pre-train,atis distance,0,500,0,0,0,0,0
+pre-train,from location,20,500,7,0,1,10,2
+pre-train,month,0,500,0,0,0,0,0
+pre-train,day name,2,500,0,0,0,2,0
+pre-train,round trip,36,500,31,4,0,0,1
+pre-train,from city,430,500,373,18,2,27,10
+pre-train,transport type,8,500,6,0,0,2,0
+pre-train,ALL,0,500,1151,132,14,245,113
+pre-train,atis capacity,0,500,0,0,0,0,0
+parsing,atis capacity,4,500,0,0,0,0,4
+gpt3,atis capacity,0,500,0,0,0,0,0
+pre-train,to contuntry,1,500,0,0,0,1,0
+parsing,to contuntry,1,500,0,0,0,1,0
+gpt3,to contuntry,1,500,0,0,0,1,0
+pre-train,relative to today,0,500,0,0,0,0,0
+parsing,relative to today,1,500,0,0,0,0,1
+gpt3,relative to today,1,500,0,0,0,0,1
+pre-train,fare basis code,11,500,5,0,0,0,6
+parsing,fare basis code,5,500,0,2,0,3,0
+gpt3,fare basis code,6,500,0,0,0,6,0
+pre-train,stop location,0,500,0,0,0,0,0
+parsing,stop location,0,500,0,0,0,0,0
+gpt3,stop location,0,500,0,0,0,0,0
+pre-train,connect,5,500,1,0,0,4,0
+parsing,connect,26,500,2,0,0,3,21
+gpt3,connect,5,500,0,0,0,5,0
+pre-train,airline name,71,500,31,16,0,0,24
+parsing,airline name,58,500,1,11,4,29,13
+gpt3,airline name,48,500,5,0,0,43,0
+pre-train,class type,16,500,1,5,0,5,5
+parsing,class type,16,500,1,1,1,8,5
+gpt3,class type,11,500,1,0,0,10,0
+pre-train,fare amount,0,500,0,0,0,0,0
+parsing,fare amount,33,500,0,0,0,0,33
+gpt3,fare amount,0,500,0,0,0,0,0
+pre-train,to city,424,500,309,45,6,57,7
+parsing,to city,428,500,0,247,34,135,12
+gpt3,to city,424,500,186,31,0,201,6
+pre-train,state name,1,500,0,0,0,1,0
+parsing,state name,49,500,0,0,2,4,43
+gpt3,state name,1,500,0,0,0,1,0
+pre-train,to state code,14,500,10,0,0,4,0
+parsing,to state code,15,500,0,0,0,14,1
+gpt3,to state code,14,500,0,0,0,14,0
+pre-train,alternative,3,500,1,0,0,0,2
+parsing,alternative,3,500,0,0,0,1,2
+gpt3,alternative,1,500,0,0,0,1,0
+pre-train,arrive time end,1,500,0,0,0,1,0
+parsing,arrive time end,3,500,0,0,0,1,2
+gpt3,arrive time end,1,500,0,0,0,1,0
+pre-train,relative cost,23,500,22,1,0,0,0
+parsing,relative cost,18,500,1,0,0,16,1
+gpt3,relative cost,36,500,17,0,0,8,11
+pre-train,atis flight,0,500,0,0,0,0,0
+parsing,atis flight,3,500,0,0,0,0,3
+gpt3,atis flight,0,500,0,0,0,0,0
+pre-train,aircraft code,11,500,0,0,0,11,0
+parsing,aircraft code,12,500,0,3,0,8,1
+gpt3,aircraft code,11,500,0,0,0,11,0
+pre-train,flight stop,8,500,8,0,0,0,0
+parsing,flight stop,42,500,1,7,0,0,34
+gpt3,flight stop,8,500,0,0,0,8,0
+pre-train,relative time,0,500,0,0,0,0,0
+parsing,relative time,2,500,0,0,0,0,2
+gpt3,relative time,0,500,0,0,0,0,0
+pre-train,airport code,4,500,0,0,0,4,0
+parsing,airport code,5,500,0,0,0,5,0
+gpt3,airport code,4,500,0,0,0,4,0
+pre-train,atis meal,0,500,0,0,0,0,0
+parsing,atis meal,0,500,0,0,0,0,0
+gpt3,atis meal,0,500,0,0,0,0,0
+pre-train,to airport,10,500,2,0,0,2,6
+parsing,to airport,50,500,0,1,0,3,46
+gpt3,to airport,5,500,0,0,0,4,1
+pre-train,economy,0,500,0,0,0,0,0
+parsing,economy,42,500,0,0,0,0,42
+gpt3,economy,0,500,0,0,0,0,0
+pre-train,stop city,16,500,7,3,0,3,3
+parsing,stop city,12,500,0,0,2,10,0
+gpt3,stop city,13,500,0,0,0,13,0
+pre-train,airport name,16,500,0,0,0,16,0
+parsing,airport name,20,500,0,0,0,15,5
+gpt3,airport name,14,500,0,0,0,14,0
+pre-train,meal code,1,500,0,0,0,1,0
+parsing,meal code,1,500,0,1,0,0,0
+gpt3,meal code,1,500,0,0,0,1,0
+pre-train,ground fare,0,500,0,0,0,0,0
+parsing,ground fare,3,500,0,0,0,0,3
+gpt3,ground fare,0,500,0,0,0,0,0
+pre-train,arrive time start,0,500,0,0,0,0,0
+parsing,arrive time start,47,500,0,0,0,0,47
+gpt3,arrive time start,0,500,0,0,0,0,0
+pre-train,superlative,18,500,11,1,0,6,0
+parsing,superlative,23,500,0,0,0,18,5
+gpt3,superlative,18,500,0,0,0,18,0
+pre-train,O,0,500,0,0,0,0,0
+parsing,O,5,500,0,0,0,0,5
+gpt3,O,0,500,0,0,0,0,0
+pre-train,restriction code,2,500,0,2,0,0,0
+parsing,restriction code,2,500,0,0,0,2,0
+gpt3,restriction code,2,500,0,0,0,2,0
+pre-train,stop state,0,500,0,0,0,0,0
+parsing,stop state,2,500,0,0,0,0,2
+gpt3,stop state,0,500,0,0,0,0,0
+pre-train,at time,0,500,0,0,0,0,0
+parsing,at time,43,500,0,0,0,0,43
+gpt3,at time,3,500,0,0,0,0,3
+pre-train,meal,6,500,2,0,0,4,0
+parsing,meal,10,500,1,4,0,1,4
+gpt3,meal,7,500,0,0,0,6,1
+pre-train,ground service,0,500,0,0,0,0,0
+parsing,ground service,16,500,0,0,0,0,16
+gpt3,ground service,0,500,0,0,0,0,0
+pre-train,from state,21,500,17,0,0,4,0
+parsing,from state,66,500,0,15,0,5,46
+gpt3,from state,26,500,0,0,0,21,5
+pre-train,atis restriction,0,500,0,0,0,0,0
+parsing,atis restriction,0,500,0,0,0,0,0
+gpt3,atis restriction,0,500,0,0,0,0,0
+pre-train,state code,1,500,1,0,0,0,0
+parsing,state code,0,500,0,0,0,0,0
+gpt3,state code,3,500,0,0,0,1,2
+pre-train,atis airfare,0,500,0,0,0,0,0
+parsing,atis airfare,5,500,0,0,0,0,5
+gpt3,atis airfare,0,500,0,0,0,0,0
+pre-train,atis abbreviation,0,500,0,0,0,0,0
+parsing,atis abbreviation,2,500,0,0,0,0,2
+gpt3,atis abbreviation,0,500,0,0,0,0,0
+pre-train,number of days,0,500,0,0,0,0,0
+parsing,number of days,3,500,0,0,0,0,3
+gpt3,number of days,0,500,0,0,0,0,0
+pre-train,atis airline,0,500,0,0,0,0,0
+parsing,atis airline,9,500,0,0,0,0,9
+gpt3,atis airline,0,500,0,0,0,0,0
+pre-train,depart time,122,500,96,12,1,7,6
+parsing,depart time,128,500,0,2,28,91,7
+gpt3,depart time,123,500,43,8,1,60,11
+pre-train,days code,1,500,0,0,0,1,0
+parsing,days code,2,500,0,0,0,1,1
+gpt3,days code,1,500,0,0,0,1,0
+pre-train,arrive date,18,500,5,2,0,7,4
+parsing,arrive date,90,500,0,4,1,9,76
+gpt3,arrive date,20,500,2,2,0,10,6
+pre-train,in city,48,500,17,3,0,9,19
+parsing,in city,101,500,0,15,4,4,78
+gpt3,in city,30,500,3,0,0,27,0
+pre-train,atis quantity,0,500,0,0,0,0,0
+parsing,atis quantity,5,500,0,0,0,0,5
+gpt3,atis quantity,0,500,0,0,0,0,0
+pre-train,depart date,170,500,144,11,1,6,8
+parsing,depart date,161,500,0,7,3,151,0
+gpt3,depart date,171,500,53,1,7,98,12
+pre-train,from airport,9,500,1,0,0,8,0
+parsing,from airport,20,500,0,5,0,3,12
+gpt3,from airport,9,500,0,0,0,9,0
+pre-train,flight time,1,500,0,1,0,0,0
+parsing,flight time,100,500,0,0,0,1,99
+gpt3,flight time,5,500,0,0,0,1,4
+pre-train,flight days,5,500,5,0,0,0,0
+parsing,flight days,182,500,0,5,0,0,177
+gpt3,flight days,8,500,0,0,0,5,3
+pre-train,period of day,2,500,0,0,0,2,0
+parsing,period of day,12,500,0,1,0,1,10
+gpt3,period of day,2,500,0,0,0,2,0
+pre-train,return time,0,500,0,0,0,0,0
+parsing,return time,1,500,0,0,0,0,1
+gpt3,return time,0,500,0,0,0,0,0
+pre-train,atis airport,0,500,0,0,0,0,0
+parsing,atis airport,0,500,0,0,0,0,0
+gpt3,atis airport,0,500,0,0,0,0,0
+pre-train,atis aircraft,0,500,0,0,0,0,0
+parsing,atis aircraft,7,500,0,0,0,0,7
+gpt3,atis aircraft,0,500,0,0,0,0,0
+pre-train,to state,20,500,8,0,0,12,0
+parsing,to state,46,500,0,5,0,15,26
+gpt3,to state,24,500,0,0,0,20,4
+pre-train,airline code,16,500,7,0,0,8,1
+parsing,airline code,16,500,0,0,0,14,2
+gpt3,airline code,25,500,1,2,0,12,10
+pre-train,flight number,9,500,1,0,1,7,0
+parsing,flight number,94,500,0,5,0,4,85
+gpt3,flight number,10,500,2,0,0,7,1
+pre-train,return date,7,500,1,0,0,6,0
+parsing,return date,8,500,0,1,0,6,1
+gpt3,return date,8,500,0,0,0,7,1
+pre-train,meal description,8,500,3,0,0,5,0
+parsing,meal description,7,500,0,0,0,7,0
+gpt3,meal description,8,500,0,0,0,8,0
+pre-train,atis cheapest,0,500,0,0,0,0,0
+parsing,atis cheapest,0,500,0,0,0,0,0
+gpt3,atis cheapest,0,500,0,0,0,0,0
+pre-train,arrive time,39,500,18,8,2,2,9
+parsing,arrive time,39,500,0,3,8,19,9
+gpt3,arrive time,32,500,4,0,0,26,2
+pre-train,atis distance,0,500,0,0,0,0,0
+parsing,atis distance,3,500,0,0,0,0,3
+gpt3,atis distance,0,500,0,0,0,0,0
+pre-train,from location,20,500,7,0,1,10,2
+parsing,from location,41,500,0,1,0,16,24
+gpt3,from location,20,500,0,0,0,18,2
+pre-train,month,0,500,0,0,0,0,0
+parsing,month,34,500,0,0,0,0,34
+gpt3,month,0,500,0,0,0,0,0
+pre-train,day name,2,500,0,0,0,2,0
+parsing,day name,11,500,0,1,0,1,9
+gpt3,day name,2,500,0,0,0,2,0
+pre-train,round trip,36,500,31,4,0,0,1
+parsing,round trip,34,500,7,15,0,11,1
+gpt3,round trip,37,500,0,0,11,26,0
+pre-train,from city,430,500,373,18,2,27,10
+parsing,from city,423,500,4,307,20,87,5
+gpt3,from city,425,500,187,31,1,202,4
+pre-train,transport type,8,500,6,0,0,2,0
+parsing,transport type,9,500,0,0,0,6,3
+gpt3,transport type,8,500,0,0,0,8,0
+pre-train,ALL,0,500,1151,132,14,245,113
+parsing,ALL,0,500,18,669,107,729,1136
+gpt3,ALL,0,500,504,75,20,943,135
