@@ -23,20 +23,27 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
     num = 0
     for index, row in model_df.iterrows():
         print(f"{index} row : {row}")
-        cor, par, inc, mis, spu = row["cor"], row["par"], row["inc"], row["mis"], row["spu"]
         counter = row["exp_counter"] if row["label_name"] == "ALL" else row["key_counter"]
+        if counter == 0:
+            # counter == 0 means there is no example available for given model_name and label_name
+            # todo: counter == 0 example should not be stored in the first place, check evaluate_model function
+            continue
+        cor, par, inc, mis, spu = row["cor"]/counter, row["par"]/counter, \
+                                  row["inc"]/counter, row["mis"]/counter, row["spu"]/counter
         num = num + counter
         acc, f1 = muc_loose_evaluation(cor, par, inc, mis, spu) if is_loose else \
             muc_strict_evaluation(cor, par, inc, mis, spu)
-        try:
-            accs.append(acc/counter)
-            f1s.append(f1/counter)
-            print(f"{counter} examples loose evaluation: {is_loose} \nacc={acc/counter} f1={f1/counter}")
-        except ZeroDivisionError:
-            print(f"counter is {counter}")
+        accs.append(acc)
+        f1s.append(f1)
+    if len(accs) == len(f1s) == 0:
+        # no entry found
+        return
     try:
+        print(f"acc [{model_name}, {label_name}]: ", accs)
+        print(f"f1 [{model_name}, {label_name}]: ", f1s)
         acc, f1 = sum(accs)/len(accs), sum(f1s)/len(f1s)
         result = [model_name, label_name, num, is_loose, acc, f1]
+        print("result: ", result)
     except ZeroDivisionError:
         print(f"divsion by zero - {len(accs)} acc, {len(f1s)} f1")
     # save reslut in file

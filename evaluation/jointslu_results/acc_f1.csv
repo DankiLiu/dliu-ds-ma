@@ -1,4 +1,10 @@
 model_name,label_name,num,is_loose,acc,f1
+gpt3,ALL,500,True,0.34525939177101966,0.5087873462214411
+parsing,ALL,500,True,0.25836780744640847,0.3979148566463945
+pre-train,ALL,1000,True,0.7752265861027191,0.8692411924119241
+gpt3,ALL,500,False,0.3005366726296959,0.4758347978910369
+parsing,ALL,500,False,0.006769462203836028,0.20417028670721113
+pre-train,ALL,1000,False,0.6954682779456194,0.8245257452574526
 parsing,atis capacity,8,True,0.0,0.0
 parsing,atis capacity,8,False,0.0,0.0
 gpt3,to contuntry,2,True,0.0,0.0
@@ -12,37 +18,37 @@ parsing,relative to today,2,True,0.0,0.0
 gpt3,relative to today,2,False,0.0,0.0
 parsing,relative to today,2,False,0.0,0.0
 gpt3,fare basis code,12,True,0.0,0.0
-parsing,fare basis code,10,True,0.08,0.1142857142857143
-pre-train,fare basis code,22,True,0.04132231404958678,0.056818181818181816
+parsing,fare basis code,10,True,0.4,0.5714285714285715
+pre-train,fare basis code,22,True,0.45454545454545453,0.625
 gpt3,fare basis code,12,False,0.0,0.0
-parsing,fare basis code,10,False,0.0,0.05714285714285715
-pre-train,fare basis code,22,False,0.04132231404958678,0.056818181818181816
+parsing,fare basis code,10,False,0.0,0.28571428571428575
+pre-train,fare basis code,22,False,0.45454545454545453,0.625
 gpt3,connect,10,True,0.0,0.0
-parsing,connect,52,True,0.002958579881656805,0.005494505494505494
-pre-train,connect,10,True,0.04,0.06666666666666668
+parsing,connect,52,True,0.07692307692307693,0.14285714285714288
+pre-train,connect,10,True,0.2,0.33333333333333337
 gpt3,connect,10,False,0.0,0.0
-parsing,connect,52,False,0.002958579881656805,0.005494505494505494
-pre-train,connect,10,False,0.04,0.06666666666666668
-gpt3,airline name,96,True,0.002170138888888889,0.003930817610062893
-parsing,airline name,116,True,0.0035671819262782403,0.005591798695246971
-pre-train,airline name,142,True,0.009323546915294585,0.01121986154213416
-gpt3,airline name,96,False,0.002170138888888889,0.003930817610062893
-parsing,airline name,116,False,0.00029726516052318666,0.0030288909599254427
-pre-train,airline name,142,False,0.00614957349732196,0.009310097875387922
-gpt3,class type,22,True,0.008264462809917356,0.015151515151515154
-parsing,class type,32,True,0.0078125,0.013157894736842106
-pre-train,class type,32,True,0.0234375,0.03409090909090909
-gpt3,class type,22,False,0.008264462809917356,0.015151515151515154
-parsing,class type,32,False,0.00390625,0.009868421052631578
-pre-train,class type,32,False,0.00390625,0.019886363636363636
+parsing,connect,52,False,0.07692307692307693,0.14285714285714288
+pre-train,connect,10,False,0.2,0.33333333333333337
+gpt3,airline name,96,True,0.10416666666666667,0.18867924528301885
+parsing,airline name,116,True,0.20689655172413793,0.32432432432432434
+pre-train,airline name,142,True,0.6619718309859155,0.7966101694915254
+gpt3,airline name,96,False,0.10416666666666667,0.18867924528301885
+parsing,airline name,116,False,0.017241379310344827,0.17567567567567569
+pre-train,airline name,142,False,0.43661971830985913,0.6610169491525422
+gpt3,class type,22,True,0.09090909090909091,0.16666666666666669
+parsing,class type,32,True,0.125,0.2105263157894737
+pre-train,class type,32,True,0.375,0.5454545454545454
+gpt3,class type,22,False,0.09090909090909091,0.16666666666666669
+parsing,class type,32,False,0.0625,0.15789473684210525
+pre-train,class type,32,False,0.0625,0.3181818181818182
 parsing,fare amount,66,True,0.0,0.0
 parsing,fare amount,66,False,0.0,0.0
-gpt3,to city,848,True,0.001207057671769313,0.0015968563270832722
-parsing,to city,856,True,0.0013483710367717706,0.001627934566257596
-pre-train,to city,848,True,0.001969117123531506,0.00212986137851367
-gpt3,to city,848,False,0.001034620861516554,0.0014827951608630385
-parsing,to city,856,False,0.0,0.000813967283128798
-pre-train,to city,848,False,0.001718805624777501,0.0019944888332691564
+gpt3,to city,848,True,0.5117924528301887,0.6770670826833072
+parsing,to city,856,True,0.5771028037383178,0.6967559943582512
+pre-train,to city,848,True,0.8349056603773585,0.9030612244897958
+gpt3,to city,848,False,0.4386792452830189,0.6287051482059282
+parsing,to city,856,False,0.0,0.3483779971791256
+pre-train,to city,848,False,0.7287735849056604,0.8456632653061223
 gpt3,state name,2,True,0.0,0.0
 parsing,state name,98,True,0.0,0.0
 pre-train,state name,2,True,0.0,0.0
@@ -51,42 +57,42 @@ parsing,state name,98,False,0.0,0.0
 pre-train,state name,2,False,0.0,0.0
 gpt3,to state code,28,True,0.0,0.0
 parsing,to state code,30,True,0.0,0.0
-pre-train,to state code,28,True,0.05102040816326531,0.05952380952380952
+pre-train,to state code,28,True,0.7142857142857143,0.8333333333333333
 gpt3,to state code,28,False,0.0,0.0
 parsing,to state code,30,False,0.0,0.0
-pre-train,to state code,28,False,0.05102040816326531,0.05952380952380952
+pre-train,to state code,28,False,0.7142857142857143,0.8333333333333333
 gpt3,alternative,2,True,0.0,0.0
 parsing,alternative,6,True,0.0,0.0
-pre-train,alternative,6,True,0.1111111111111111,0.16666666666666666
+pre-train,alternative,6,True,0.3333333333333333,0.5
 gpt3,alternative,2,False,0.0,0.0
 parsing,alternative,6,False,0.0,0.0
-pre-train,alternative,6,False,0.1111111111111111,0.16666666666666666
+pre-train,alternative,6,False,0.3333333333333333,0.5
 gpt3,arrive time end,2,True,0.0,0.0
 parsing,arrive time end,6,True,0.0,0.0
 pre-train,arrive time end,2,True,0.0,0.0
 gpt3,arrive time end,2,False,0.0,0.0
 parsing,arrive time end,6,False,0.0,0.0
 pre-train,arrive time end,2,False,0.0,0.0
-gpt3,relative cost,72,True,0.013117283950617283,0.01781970649895178
-parsing,relative cost,36,True,0.0030864197530864196,0.005847953216374269
-pre-train,relative cost,46,True,0.043478260869565216,0.043478260869565216
-gpt3,relative cost,72,False,0.013117283950617283,0.01781970649895178
-parsing,relative cost,36,False,0.0030864197530864196,0.005847953216374269
-pre-train,relative cost,46,False,0.04158790170132325,0.04253308128544424
+gpt3,relative cost,72,True,0.4722222222222222,0.6415094339622641
+parsing,relative cost,36,True,0.05555555555555555,0.10526315789473684
+pre-train,relative cost,46,True,1.0,1.0
+gpt3,relative cost,72,False,0.4722222222222222,0.6415094339622641
+parsing,relative cost,36,False,0.05555555555555555,0.10526315789473684
+pre-train,relative cost,46,False,0.9565217391304348,0.9782608695652174
 parsing,atis flight,6,True,0.0,0.0
 parsing,atis flight,6,False,0.0,0.0
 gpt3,aircraft code,22,True,0.0,0.0
-parsing,aircraft code,24,True,0.020833333333333332,0.03333333333333333
+parsing,aircraft code,24,True,0.25,0.4000000000000001
 pre-train,aircraft code,22,True,0.0,0.0
 gpt3,aircraft code,22,False,0.0,0.0
-parsing,aircraft code,24,False,0.0,0.016666666666666666
+parsing,aircraft code,24,False,0.0,0.20000000000000004
 pre-train,aircraft code,22,False,0.0,0.0
 gpt3,flight stop,16,True,0.0,0.0
-parsing,flight stop,84,True,0.0045351473922902496,0.007619047619047619
-pre-train,flight stop,16,True,0.125,0.125
+parsing,flight stop,84,True,0.19047619047619047,0.32
+pre-train,flight stop,16,True,1.0,1.0
 gpt3,flight stop,16,False,0.0,0.0
-parsing,flight stop,84,False,0.0005668934240362812,0.004285714285714286
-pre-train,flight stop,16,False,0.125,0.125
+parsing,flight stop,84,False,0.023809523809523808,0.18
+pre-train,flight stop,16,False,1.0,1.0
 parsing,relative time,4,True,0.0,0.0
 parsing,relative time,4,False,0.0,0.0
 gpt3,airport code,8,True,0.0,0.0
@@ -96,19 +102,19 @@ gpt3,airport code,8,False,0.0,0.0
 parsing,airport code,10,False,0.0,0.0
 pre-train,airport code,8,False,0.0,0.0
 gpt3,to airport,10,True,0.0,0.0
-parsing,to airport,100,True,0.0004,0.000784313725490196
-pre-train,to airport,20,True,0.02,0.03333333333333333
+parsing,to airport,100,True,0.02,0.0392156862745098
+pre-train,to airport,20,True,0.2,0.3333333333333333
 gpt3,to airport,10,False,0.0,0.0
-parsing,to airport,100,False,0.0,0.000392156862745098
-pre-train,to airport,20,False,0.02,0.03333333333333333
+parsing,to airport,100,False,0.0,0.0196078431372549
+pre-train,to airport,20,False,0.2,0.3333333333333333
 parsing,economy,84,True,0.0,0.0
 parsing,economy,84,False,0.0,0.0
 gpt3,stop city,26,True,0.0,0.0
 parsing,stop city,24,True,0.0,0.0
-pre-train,stop city,32,True,0.0390625,0.04807692307692308
+pre-train,stop city,32,True,0.625,0.7692307692307693
 gpt3,stop city,26,False,0.0,0.0
 parsing,stop city,24,False,0.0,0.0
-pre-train,stop city,32,False,0.02734375,0.040865384615384616
+pre-train,stop city,32,False,0.4375,0.6538461538461539
 gpt3,airport name,28,True,0.0,0.0
 parsing,airport name,40,True,0.0,0.0
 pre-train,airport name,32,True,0.0,0.0
@@ -127,18 +133,18 @@ parsing,arrive time start,94,True,0.0,0.0
 parsing,arrive time start,94,False,0.0,0.0
 gpt3,superlative,36,True,0.0,0.0
 parsing,superlative,46,True,0.0,0.0
-pre-train,superlative,36,True,0.037037037037037035,0.044444444444444446
+pre-train,superlative,36,True,0.6666666666666667,0.8
 gpt3,superlative,36,False,0.0,0.0
 parsing,superlative,46,False,0.0,0.0
-pre-train,superlative,36,False,0.03395061728395062,0.04259259259259259
+pre-train,superlative,36,False,0.6111111111111112,0.7666666666666667
 parsing,O,10,True,0.0,0.0
 parsing,O,10,False,0.0,0.0
 gpt3,restriction code,4,True,0.0,0.0
 parsing,restriction code,4,True,0.0,0.0
-pre-train,restriction code,4,True,0.5,0.5
+pre-train,restriction code,4,True,1.0,1.0
 gpt3,restriction code,4,False,0.0,0.0
 parsing,restriction code,4,False,0.0,0.0
-pre-train,restriction code,4,False,0.0,0.25
+pre-train,restriction code,4,False,0.0,0.5
 parsing,stop state,4,True,0.0,0.0
 parsing,stop state,4,False,0.0,0.0
 gpt3,at time,6,True,0.0,0.0
@@ -146,19 +152,19 @@ parsing,at time,86,True,0.0,0.0
 gpt3,at time,6,False,0.0,0.0
 parsing,at time,86,False,0.0,0.0
 gpt3,meal,14,True,0.0,0.0
-parsing,meal,20,True,0.05,0.06666666666666668
-pre-train,meal,12,True,0.05555555555555555,0.08333333333333333
+parsing,meal,20,True,0.5,0.6666666666666667
+pre-train,meal,12,True,0.3333333333333333,0.5
 gpt3,meal,14,False,0.0,0.0
-parsing,meal,20,False,0.01,0.04
-pre-train,meal,12,False,0.05555555555555555,0.08333333333333333
+parsing,meal,20,False,0.1,0.4
+pre-train,meal,12,False,0.3333333333333333,0.5
 parsing,ground service,32,True,0.0,0.0
 parsing,ground service,32,False,0.0,0.0
 gpt3,from state,52,True,0.0,0.0
-parsing,from state,132,True,0.003443526170798898,0.005611672278338944
-pre-train,from state,42,True,0.03854875283446712,0.042606516290726815
+parsing,from state,132,True,0.22727272727272727,0.37037037037037035
+pre-train,from state,42,True,0.8095238095238095,0.8947368421052632
 gpt3,from state,52,False,0.0,0.0
-parsing,from state,132,False,0.0,0.002805836139169472
-pre-train,from state,42,False,0.03854875283446712,0.042606516290726815
+parsing,from state,132,False,0.0,0.18518518518518517
+pre-train,from state,42,False,0.8095238095238095,0.8947368421052632
 gpt3,state code,6,True,0.0,0.0
 pre-train,state code,2,True,1.0,1.0
 gpt3,state code,6,False,0.0,0.0
@@ -171,44 +177,44 @@ parsing,number of days,6,True,0.0,0.0
 parsing,number of days,6,False,0.0,0.0
 parsing,atis airline,18,True,0.0,0.0
 parsing,atis airline,18,False,0.0,0.0
-gpt3,depart time,246,True,0.003371009319849296,0.004738675958188153
-parsing,depart time,256,True,0.0001220703125,0.00019778481012658228
-pre-train,depart time,244,True,0.007256113947863478,0.0076644666808601235
-gpt3,depart time,246,False,0.0028422235441866615,0.004367015098722416
-parsing,depart time,256,False,0.0,9.889240506329114e-05
-pre-train,depart time,244,False,0.0064498790647675355,0.007238662976367895
+gpt3,depart time,246,True,0.41463414634146345,0.5828571428571429
+parsing,depart time,256,True,0.015625,0.02531645569620253
+pre-train,depart time,244,True,0.8852459016393442,0.935064935064935
+gpt3,depart time,246,False,0.34959349593495936,0.5371428571428571
+parsing,depart time,256,False,0.0,0.012658227848101266
+pre-train,depart time,244,False,0.7868852459016393,0.8831168831168831
 gpt3,days code,2,True,0.0,0.0
 parsing,days code,4,True,0.0,0.0
 pre-train,days code,2,True,0.0,0.0
 gpt3,days code,2,False,0.0,0.0
 parsing,days code,4,False,0.0,0.0
 pre-train,days code,2,False,0.0,0.0
-gpt3,arrive date,40,True,0.01,0.016666666666666666
-parsing,arrive date,180,True,0.0004938271604938272,0.000935672514619883
-pre-train,arrive date,36,True,0.021604938271604937,0.031111111111111114
-gpt3,arrive date,40,False,0.005,0.0125
-parsing,arrive date,180,False,0.0,0.0004678362573099415
-pre-train,arrive date,36,False,0.0154320987654321,0.02666666666666666
-gpt3,in city,60,True,0.0033333333333333335,0.006060606060606061
-parsing,in city,202,True,0.0014704440741103812,0.0024752475247524753
-pre-train,in city,96,True,0.008680555555555556,0.012254901960784314
-gpt3,in city,60,False,0.0033333333333333335,0.006060606060606061
-parsing,in city,202,False,0.0,0.0012376237623762376
-pre-train,in city,96,False,0.007378472222222223,0.011335784313725492
+gpt3,arrive date,40,True,0.2,0.3333333333333334
+parsing,arrive date,180,True,0.044444444444444446,0.08421052631578947
+pre-train,arrive date,36,True,0.3888888888888889,0.56
+gpt3,arrive date,40,False,0.1,0.25000000000000006
+parsing,arrive date,180,False,0.0,0.042105263157894736
+pre-train,arrive date,36,False,0.2777777777777778,0.48000000000000004
+gpt3,in city,60,True,0.1,0.18181818181818182
+parsing,in city,202,True,0.1485148514851485,0.25
+pre-train,in city,96,True,0.4166666666666667,0.5882352941176471
+gpt3,in city,60,False,0.1,0.18181818181818182
+parsing,in city,202,False,0.0,0.125
+pre-train,in city,96,False,0.3541666666666667,0.5441176470588236
 parsing,atis quantity,10,True,0.0,0.0
 parsing,atis quantity,10,False,0.0,0.0
-gpt3,depart date,342,True,0.0018467220683287165,0.0027223230490018148
-parsing,depart date,322,True,0.00027005130974885227,0.0005085176709890668
-pre-train,depart date,340,True,0.005363321799307958,0.005593648502345724
-gpt3,depart date,342,False,0.0018125235115078143,0.0026971163541036495
-parsing,depart date,322,False,0.0,0.0002542588354945334
-pre-train,depart date,340,False,0.004982698961937716,0.0053951642006495855
+gpt3,depart date,342,True,0.3157894736842105,0.46551724137931033
+parsing,depart date,322,True,0.043478260869565216,0.08187134502923976
+pre-train,depart date,340,True,0.9117647058823529,0.9509202453987732
+gpt3,depart date,342,False,0.30994152046783624,0.4612068965517242
+parsing,depart date,322,False,0.0,0.04093567251461988
+pre-train,depart date,340,False,0.8470588235294118,0.9171779141104295
 gpt3,from airport,18,True,0.0,0.0
-parsing,from airport,40,True,0.0125,0.02
-pre-train,from airport,18,True,0.012345679012345678,0.02222222222222222
+parsing,from airport,40,True,0.25,0.4
+pre-train,from airport,18,True,0.1111111111111111,0.19999999999999998
 gpt3,from airport,18,False,0.0,0.0
-parsing,from airport,40,False,0.0,0.01
-pre-train,from airport,18,False,0.012345679012345678,0.02222222222222222
+parsing,from airport,40,False,0.0,0.2
+pre-train,from airport,18,False,0.1111111111111111,0.19999999999999998
 gpt3,flight time,10,True,0.0,0.0
 parsing,flight time,200,True,0.0,0.0
 pre-train,flight time,2,True,1.0,1.0
@@ -216,88 +222,88 @@ gpt3,flight time,10,False,0.0,0.0
 parsing,flight time,200,False,0.0,0.0
 pre-train,flight time,2,False,0.0,0.5
 gpt3,flight days,16,True,0.0,0.0
-parsing,flight days,364,True,0.00015094795314575535,0.00029382382323558796
-pre-train,flight days,10,True,0.2,0.2
+parsing,flight days,364,True,0.027472527472527472,0.05347593582887701
+pre-train,flight days,10,True,1.0,1.0
 gpt3,flight days,16,False,0.0,0.0
-parsing,flight days,364,False,0.0,0.00014691191161779398
-pre-train,flight days,10,False,0.2,0.2
+parsing,flight days,364,False,0.0,0.026737967914438505
+pre-train,flight days,10,False,1.0,1.0
 gpt3,period of day,4,True,0.0,0.0
-parsing,period of day,24,True,0.006944444444444444,0.012820512820512822
+parsing,period of day,24,True,0.08333333333333333,0.15384615384615383
 pre-train,period of day,4,True,0.0,0.0
 gpt3,period of day,4,False,0.0,0.0
-parsing,period of day,24,False,0.0,0.006410256410256411
+parsing,period of day,24,False,0.0,0.07692307692307691
 pre-train,period of day,4,False,0.0,0.0
 parsing,return time,2,True,0.0,0.0
 parsing,return time,2,False,0.0,0.0
 parsing,atis aircraft,14,True,0.0,0.0
 parsing,atis aircraft,14,False,0.0,0.0
 gpt3,to state,48,True,0.0,0.0
-parsing,to state,92,True,0.0023629489603024575,0.004262574595055414
-pre-train,to state,40,True,0.02,0.028571428571428574
+parsing,to state,92,True,0.10869565217391304,0.19607843137254902
+pre-train,to state,40,True,0.4,0.5714285714285715
 gpt3,to state,48,False,0.0,0.0
-parsing,to state,92,False,0.0,0.002131287297527707
-pre-train,to state,40,False,0.02,0.028571428571428574
-gpt3,airline code,50,True,0.0048,0.00857142857142857
+parsing,to state,92,False,0.0,0.09803921568627451
+pre-train,to state,40,False,0.4,0.5714285714285715
+gpt3,airline code,50,True,0.12,0.21428571428571427
 parsing,airline code,32,True,0.0,0.0
-pre-train,airline code,32,True,0.02734375,0.03804347826086956
-gpt3,airline code,50,False,0.0016,0.005714285714285715
+pre-train,airline code,32,True,0.4375,0.608695652173913
+gpt3,airline code,50,False,0.04,0.14285714285714288
 parsing,airline code,32,False,0.0,0.0
-pre-train,airline code,32,False,0.02734375,0.03804347826086956
-gpt3,flight number,20,True,0.02,0.03333333333333333
-parsing,flight number,188,True,0.0005658669081032141,0.001074575542660649
-pre-train,flight number,18,True,0.012345679012345678,0.0202020202020202
-gpt3,flight number,20,False,0.02,0.03333333333333333
-parsing,flight number,188,False,0.0,0.0005372877713303245
-pre-train,flight number,18,False,0.012345679012345678,0.0202020202020202
+pre-train,airline code,32,False,0.4375,0.608695652173913
+gpt3,flight number,20,True,0.20000000000000004,0.33333333333333337
+parsing,flight number,188,True,0.05319148936170213,0.101010101010101
+pre-train,flight number,18,True,0.1111111111111111,0.1818181818181818
+gpt3,flight number,20,False,0.20000000000000004,0.33333333333333337
+parsing,flight number,188,False,0.0,0.0505050505050505
+pre-train,flight number,18,False,0.1111111111111111,0.1818181818181818
 gpt3,return date,16,True,0.0,0.0
-parsing,return date,16,True,0.015625,0.02777777777777778
-pre-train,return date,14,True,0.02040816326530612,0.03571428571428571
+parsing,return date,16,True,0.125,0.22222222222222224
+pre-train,return date,14,True,0.14285714285714285,0.25
 gpt3,return date,16,False,0.0,0.0
-parsing,return date,16,False,0.0,0.01388888888888889
-pre-train,return date,14,False,0.02040816326530612,0.03571428571428571
+parsing,return date,16,False,0.0,0.11111111111111112
+pre-train,return date,14,False,0.14285714285714285,0.25
 gpt3,meal description,16,True,0.0,0.0
 parsing,meal description,14,True,0.0,0.0
-pre-train,meal description,16,True,0.046875,0.06818181818181818
+pre-train,meal description,16,True,0.375,0.5454545454545454
 gpt3,meal description,16,False,0.0,0.0
 parsing,meal description,14,False,0.0,0.0
-pre-train,meal description,16,False,0.046875,0.06818181818181818
-gpt3,arrive time,64,True,0.00390625,0.006944444444444444
-parsing,arrive time,78,True,0.0019723865877712033,0.003076923076923077
-pre-train,arrive time,78,True,0.017094017094017092,0.019900497512437814
-gpt3,arrive time,64,False,0.00390625,0.006944444444444444
-parsing,arrive time,78,False,0.0,0.0015384615384615385
-pre-train,arrive time,78,False,0.01183431952662722,0.016838882510524303
+pre-train,meal description,16,False,0.375,0.5454545454545454
+gpt3,arrive time,64,True,0.125,0.2222222222222222
+parsing,arrive time,78,True,0.07692307692307693,0.12000000000000001
+pre-train,arrive time,78,True,0.6666666666666666,0.7761194029850745
+gpt3,arrive time,64,False,0.125,0.2222222222222222
+parsing,arrive time,78,False,0.0,0.060000000000000005
+pre-train,arrive time,78,False,0.46153846153846145,0.6567164179104477
 parsing,atis distance,6,True,0.0,0.0
 parsing,atis distance,6,False,0.0,0.0
 gpt3,from location,40,True,0.0,0.0
-parsing,from location,82,True,0.000594883997620464,0.00116144018583043
-pre-train,from location,40,True,0.017499999999999998,0.025
+parsing,from location,82,True,0.024390243902439025,0.04761904761904763
+pre-train,from location,40,True,0.35000000000000003,0.5
 gpt3,from location,40,False,0.0,0.0
-parsing,from location,82,False,0.0,0.000580720092915215
-pre-train,from location,40,False,0.017499999999999998,0.025
+parsing,from location,82,False,0.0,0.023809523809523815
+pre-train,from location,40,False,0.35000000000000003,0.5
 parsing,month,68,True,0.0,0.0
 parsing,month,68,False,0.0,0.0
 gpt3,day name,4,True,0.0,0.0
-parsing,day name,22,True,0.008264462809917356,0.015151515151515154
+parsing,day name,22,True,0.09090909090909091,0.16666666666666666
 pre-train,day name,4,True,0.0,0.0
 gpt3,day name,4,False,0.0,0.0
-parsing,day name,22,False,0.0,0.007575757575757577
+parsing,day name,22,False,0.0,0.08333333333333333
 pre-train,day name,4,False,0.0,0.0
 gpt3,round trip,74,True,0.0,0.0
-parsing,round trip,68,True,0.01903114186851211,0.02310924369747899
-pre-train,round trip,72,True,0.02700617283950617,0.02738654147104851
+parsing,round trip,68,True,0.6470588235294118,0.7857142857142856
+pre-train,round trip,72,True,0.9722222222222223,0.9859154929577465
 gpt3,round trip,74,False,0.0,0.0
-parsing,round trip,68,False,0.006055363321799308,0.015231092436974791
-pre-train,round trip,72,False,0.023919753086419755,0.025821596244131453
-gpt3,from city,850,True,0.0012069204152249135,0.0015929850200949943
-parsing,from city,846,True,0.0017381195893343168,0.0019501978416138358
-pre-train,from city,860,True,0.002114656571119524,0.0022097261861030266
-gpt3,from city,850,False,0.0010352941176470587,0.0014797223237120933
-parsing,from city,846,False,2.2355235875682534e-05,0.0009876403860262994
-pre-train,from city,860,False,0.0020173066522444563,0.0021588629235073046
+parsing,round trip,68,False,0.2058823529411765,0.5178571428571428
+pre-train,round trip,72,False,0.8611111111111112,0.9295774647887324
+gpt3,from city,850,True,0.5129411764705883,0.6770186335403728
+parsing,from city,846,True,0.7352245862884161,0.8249336870026526
+pre-train,from city,860,True,0.9093023255813953,0.9501822600243014
+gpt3,from city,850,False,0.44000000000000006,0.6288819875776398
+parsing,from city,846,False,0.009456264775413711,0.4177718832891247
+pre-train,from city,860,False,0.8674418604651163,0.928311057108141
 gpt3,transport type,16,True,0.0,0.0
 parsing,transport type,18,True,0.0,0.0
-pre-train,transport type,16,True,0.09375,0.10714285714285714
+pre-train,transport type,16,True,0.75,0.8571428571428571
 gpt3,transport type,16,False,0.0,0.0
 parsing,transport type,18,False,0.0,0.0
-pre-train,transport type,16,False,0.09375,0.10714285714285714
+pre-train,transport type,16,False,0.75,0.8571428571428571
