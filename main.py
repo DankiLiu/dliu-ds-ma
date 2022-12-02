@@ -28,12 +28,12 @@ def evaluate_all():
 
 
 def acc_f1_all():
-    evaluate_acc_f1("gpt3", None, True)
-    evaluate_acc_f1("parsing", None, True)
-    evaluate_acc_f1("pre-train", None, True)
-    evaluate_acc_f1("gpt3", None, False)
-    evaluate_acc_f1("parsing", None, False)
-    evaluate_acc_f1("pre-train", None, False)
+    evaluate_acc_f1("gpt3", "ALL", True)
+    evaluate_acc_f1("parsing", "ALL", True)
+    evaluate_acc_f1("pre-train", "ALL", True)
+    evaluate_acc_f1("gpt3", "ALL", False)
+    evaluate_acc_f1("parsing", "ALL", False)
+    evaluate_acc_f1("pre-train", "ALL", False)
 
 
 def acc_f1_all_labels():
@@ -51,9 +51,8 @@ def acc_f1_all_labels():
         evaluate_acc_f1("pre-train", label, False)
 
 
-
 if __name__ == '__main__':
     # evaluate_all_labels()
     # evaluate_all()
-    acc_f1_all()
+    # acc_f1_all()
     acc_f1_all_labels()
