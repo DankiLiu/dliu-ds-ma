@@ -4,6 +4,7 @@
 3. model output post-processing
 4. evaluation functions
 """
+from random import shuffle, randint
 from typing import List
 from util import read_keys_from_json
 
@@ -64,8 +65,8 @@ def std_gpt3_example(example):
     return text, gt
 
 
-def get_kv_pairs(num, model):
-    """return kv_pairs of prediction and ground truth for given example,
+def get_kv_pairs(num, model, random=True):
+    """return random kv_pairs of prediction and ground truth for given example,
     process them into defined format, results are used to evaluate the model"""
     assert model in ["parsing", "gpt3", "pre-train"]
     output_path = 'data/jointslu/' + model + '/' + model + '_output.json'
@@ -76,12 +77,19 @@ def get_kv_pairs(num, model):
     values = read_keys_from_json(output_path, p_key, gt_key)
     predictions, std_gts = values[p_key], values[gt_key]
     num_example = num if num <= len(predictions) else len(predictions)
-    print(f"get {num} examples")
-    # todo: random select outputs
-    predictions, std_gts = predictions[:num_example], std_gts[:num_example]
+    print(f"get {num_example} examples")
+    preds, gts = [], []
+    if random:
+        idxs = [i for i in range(len(predictions))]
+        shuffle(idxs)
+        for i in range(num_example):
+            preds.append([predictions[idxs[i]]])
+            gts.append([std_gts[idxs[i]]])
+
+    preds, gts = predictions[:num_example], std_gts[:num_example]
     assert len(predictions) == len(std_gts)
     # prediction kv_pairs and std_gt kv_pairs for num examples
-    p_gt_pairs = [(str2kv_pairs(predictions[i]), str2kv_pairs(std_gts[i])) for i in range(num_example)]
+    p_gt_pairs = [(str2kv_pairs(preds[i]), str2kv_pairs(gts[i])) for i in range(num_example)]
     return p_gt_pairs
 
 
@@ -97,6 +105,12 @@ def str2kv_pairs(string):
         try:
             if pair[0].strip() != '' or pair[1] != '':
                 kvs[pair[0].strip()] = pair[1].strip()
+                # print(f"key {pair[0].strip()} > value {kvs[pair[0].strip()]}")
         except IndexError:
             print(f"KeyValue Pair Index out of range. {pair}")
     return kvs
+
+
+def load_labels_results():
+    # load metrics results from jointslu_
+    pass
