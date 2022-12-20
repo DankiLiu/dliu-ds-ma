@@ -35,7 +35,7 @@ original label,simplified label
 "I-flight_stop",flight stop
 "B-arrive_time.period_of_day",arrive time
 "I-toloc.state_name",to state
-"B-toloc.country_name",to contuntry
+"B-toloc.country_name",to country
 "atis_flight_no",flight number
 "B-flight_days",flight days
 "I-return_date.day_number",return date
