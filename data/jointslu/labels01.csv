@@ -1,0 +1,139 @@
+fromal label,simplified label
+"I-depart_date.today_relative",depart date
+"B-arrive_time.start_time",arrive time
+"atis_distance",atis distance
+"O",O
+"B-stoploc.airport_name",stop location
+"B-depart_date.today_relative",depart date
+"I-restriction_code",restriction code
+"atis_ground_fare",ground fare
+"B-arrive_date.day_number",arrive date
+"I-arrive_time.end_time",arrive time
+"B-depart_time.period_mod",depart time
+"B-connect",connect
+"atis_ground_service",ground service
+"atis_flight_time",flight time
+"B-days_code",days code
+"I-fromloc.city_name",from location
+"B-arrive_time.end_time",arrive time
+"B-arrive_date.day_name",arrive date
+"atis_airfare",atis airfare
+"B-meal_description",meal description
+"I-arrive_date.day_number",arrive date
+"B-or",alternative
+"I-arrive_time.time_relative",arrive time
+"B-airline_code",airline code
+"B-fromloc.state_name",from location
+"B-depart_time.time_relative",depart time
+"atis_airport",atis airport
+"I-depart_time.time",depart time
+"atis_city",in location
+"B-depart_date.year",depart date
+"B-time",time
+"B-month_name",date
+"I-arrive_time.start_time",arrive time
+"I-flight_stop",stop location
+"B-arrive_time.period_of_day",arrive time
+"I-toloc.state_name",to location
+"B-toloc.country_name",to location
+"atis_flight_no",flight number
+"B-flight_days",flight duration
+"I-return_date.day_number",return date
+"atis_quantity",atis quantity
+"B-day_name",date
+"B-depart_date.day_number",depart date
+"B-meal",meal
+"B-airport_code",airport code
+"B-toloc.state_code",to location
+"I-airport_name",airport name
+"atis_cheapest",atis cheapest
+"I-airline_name",airline name
+"B-period_of_day",time
+"B-today_relative",relative to today
+"I-round_trip",round trip
+"B-fromloc.airport_code",from location
+"B-toloc.airport_code",to location
+"B-toloc.city_name",to location
+"B-arrive_date.today_relative",arrive date
+"I-city_name",in location
+"B-arrive_time.time_relative",arrive time
+"B-economy",flight class
+"atis_ground_service#atis_ground_fare",ground service
+"B-return_time.period_of_day",return time
+"B-fare_amount",fare amount
+"B-state_name",location
+"B-meal_code",meal description
+"B-flight_mod",superlative
+"B-class_type",class type
+"I-class_type",class type
+"I-meal_code",meal description
+"atis_airline#atis_flight_no",flight number
+"B-flight_time",flight time
+"B-depart_date.month_name",depart date
+"B-depart_time.end_time",depart time
+"atis_restriction",atis restriction
+"B-toloc.airport_name",to location
+"atis_aircraft",atis aircraft
+"B-airport_name",airport name
+"B-toloc.state_name",to location
+"B-fromloc.airport_name",from location
+"B-mod",superlative
+"I-flight_mod",superlative
+"B-fromloc.state_code",from location
+"atis_aircraft#atis_flight#atis_flight_no",atis aircraft
+"I-economy",economy
+"B-state_code",location
+"atis_meal",atis meal
+"B-fromloc.city_name",from location
+"B-flight_stop",stop location
+"I-transport_type",transport type
+"I-depart_time.period_of_day",depart time
+"I-depart_date.day_number",depart date
+"atis_airfare#atis_flight_time",atis aircraft
+"B-stoploc.city_name",stop location
+"I-toloc.airport_name",to location
+"atis_flight",atis flight
+"B-depart_date.day_name",depart date
+"B-flight_number",flight number
+"B-depart_time.start_time",depart time
+"B-arrive_time.time",arrive time
+"I-fromloc.airport_name",from location
+"I-fare_basis_code",fare basis code
+"I-flight_time",flight time
+"B-day_number",duration
+"B-return_date.date_relative",return date
+"I-fare_amount",fare amount
+"B-stoploc.state_code",stop location
+"B-depart_time.time",depart time
+"B-fare_basis_code",fare basis code
+"B-arrive_date.date_relative",arrive date
+"I-arrive_time.period_of_day",arrive time
+"B-airline_name",airline name
+"B-arrive_time.period_mod",arrive time
+"atis_flight#atis_airfare",atis flight
+"I-cost_relative",relative cost
+"atis_capacity",atis capacity
+"B-depart_time.period_of_day",depart time
+"B-cost_relative",relative cost
+"I-toloc.city_name",to location
+"B-return_date.month_name",return date
+"B-arrive_date.month_name",return date
+"I-stoploc.city_name",stop location
+"B-return_date.day_number",return date
+"I-depart_time.time_relative",depart time
+"B-aircraft_code",aircraft code
+"I-time",at time
+"B-restriction_code",restriction code
+"B-city_name",in location
+"I-depart_time.start_time",depart time
+"I-depart_time.end_time",depart time
+"I-fromloc.state_name",from location
+"B-time_relative",relative time
+"B-depart_date.date_relative",depart time
+"B-round_trip",round trip
+"atis_abbreviation",atis abbreviation
+"I-arrive_time.time",arrive time
+"I-today_relative",relative to today
+"B-transport_type",transport type
+"B-return_time.period_mod",return time
+"atis_airline",atis airline
