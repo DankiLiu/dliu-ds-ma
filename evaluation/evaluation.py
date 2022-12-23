@@ -17,11 +17,13 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
     """
     result = None
     df = pd.read_csv("evaluation/jointslu_results/scores.csv")
-    print(df.head())
+    # print(df.head())
     model_df = df.loc[(df["model_name"] == model_name) & (df["label_name"] == label_name)]
+    print(model_df)
     accs, f1s = [], []
     num = 0
     for index, row in model_df.iterrows():
+        print("num: ", num)
         print(f"{index} row : {row}")
         counter = row["exp_counter"] if row["label_name"] == "ALL" else row["key_counter"]
         if counter == 0:
@@ -42,16 +44,18 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
         print(f"acc [{model_name}, {label_name}]: ", accs)
         print(f"f1 [{model_name}, {label_name}]: ", f1s)
         acc, f1 = sum(accs)/len(accs), sum(f1s)/len(f1s)
+        # todo: if contains model_name, label_name, is_loose entry, then merge those entry
         result = [model_name, label_name, num, is_loose, acc, f1]
         print("result: ", result)
     except ZeroDivisionError:
         print(f"divsion by zero - {len(accs)} acc, {len(f1s)} f1")
     # save reslut in file
     if result is not None:
-        with open("evaluation/jointslu_results/acc_f1.csv", 'a') as f:
-            writer = csv.writer(f)
-            writer.writerow(result)
-            f.close()
+        if False:
+            with open("evaluation/jointslu_results/acc_f1.csv", 'a') as f:
+                writer = csv.writer(f)
+                writer.writerow(result)
+                f.close()
     else:
         print(f"no entry met [{model_name}, {label_name}]")
 

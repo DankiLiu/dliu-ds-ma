@@ -7,6 +7,7 @@
 from random import shuffle, randint
 from typing import List
 from util import read_keys_from_json
+import pandas as pd
 
 
 def get_std_gt(text: str, labels: List):
@@ -109,6 +110,30 @@ def str2kv_pairs(string):
         except IndexError:
             print(f"KeyValue Pair Index out of range. {pair}")
     return kvs
+
+
+def merge_data(model_name, label_name):
+    """merge scores entries with same model and label name"""
+    file_path = "evaluation/jointslu_results/scores.csv"
+    df = pd.read_csv(file_path)
+    df_select = df.loc[(df['model_name'] == model_name) & (df['label_name'] == label_name)]
+    print(df_select)
+    if df_select.size == 0 or df_select.size == 1:
+        return
+    # remove original data in df
+    df.drop(df[(df['model_name'] == model_name) & (df['label_name'] == label_name)].index)
+    new_col = {
+        'model_name': model_name,
+        'label_name': label_name,
+        'key_counter': df_select['key_counter'].sum(),
+        'exp_counter': df_select['exp_counter'].sum(),
+        'cor': df_select['cor'].mean(),
+        'par': df_select['par'].mean(),
+        'inc': df_select['inc'].mean(),
+        'mis': df_select['mis'].mean(),
+        'spu': df_select['spu'].mean(),
+    }
+    print("new column: ", new_col)
 
 
 def load_labels_results():
