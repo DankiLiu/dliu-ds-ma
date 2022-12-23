@@ -6,6 +6,17 @@ from sentence_transformers.util import cos_sim
 
 from evaluation.evaluation_utils import get_std_gt
 
+PROMPT_1 = "Extract the important information from this text and show them using key-value pairs.\n"
+PROMPT_2 = "Extract the intention of the user from the input text, an example is given: \n"
+PROMPT_3 = "Please summary the intention of the user in keyword form from the input text, an example is given: \n" \
+           "input>{exp_text}\noutput>{exp_gt}\ninput>{input_sentence}\noutput>"
+ROBOT_TRANSLATOR = "A robot is given a command in natural language sentence, " \
+                   "but it can only help the user when the important information that shows user's intention is " \
+                   "translated to key-value pairs, such as \"someKey: someValue; ...\", where values are a word " \
+                   "or a phrase in the command sentence and keys are labels describe the values.\n" \
+                   "\"\"\"\nfor example the command sentence \"{exp_text}\" will be translated to \"{exp_gt}\"\"\"\"\n"\
+                   "given a command \"{input_sentence}\"\"\"\"\nI want to translate the command sentence so that the robot understands it.\"\"\"\n"
+
 
 def load_examples():
     """
@@ -56,7 +67,7 @@ def get_example_by_sim(texts: List, examples):
     return [examples[idx] for idx in idxs]
 
 
-def get_examples_gpt3(data_type="train", num=1, do_shuffle=True):
+def get_examples_gpt3(data_type="train", num=1, do_shuffle=False):
     """return a list of text and a list of its corresponding labels,
     return one example by default"""
     # get example from parsing/train.json by default
@@ -95,14 +106,16 @@ def get_example_keyword_pair(data_type, num=0, do_shuffle=False):
     return text, outputs
 
 
-def get_oneshot_prompt(prompt, oneshot_example, sentence: str):
-    """construct prompt for given one shot example and sentence.
-    :return (str): a oneshot prompt"""
-    prompt_i = prompt + oneshot_example
-    sentence = "input> " + sentence
-    prompt_i = prompt_i + '\n' + sentence + '\n' + "output> "
-    print("prompt:\n", prompt_i)
-    return prompt_i
+def construct_oneshot_prompt(prompt, exp_text, exp_gt, sentence):
+    """return the constructed prompt and stop sequence"""
+    if prompt == "PROMPT_3":
+        return PROMPT_3.format(exp_text=exp_text,
+                               exp_gt=exp_gt,
+                               input_sentence=sentence), "output>"
+    elif prompt == "ROBOT_TRANSLATOR":
+        return ROBOT_TRANSLATOR.format(exp_text=exp_text,
+                                       exp_gt=exp_gt,
+                                       input_sentence=sentence), "\"\"\"\n"
 
 
 def construct_oneshot_example(examples: List):
@@ -114,12 +127,9 @@ def construct_oneshot_example(examples: List):
         labels = [l for l in examples[i]["labels"]]
         t_list.append(text)
         l_list.append(labels)
-    examples = []
-    for i in range(len(t_list)):
-        output_labels = get_std_gt(' '.join(t_list[i]), l_list[i])
-        example = "input> " + ' '.join(t_list[i]) + '\n' + "output> " + output_labels
-        examples.append(example)
-    return examples
+    exp_texts = [' '.join(t_list[i]) for i in range(len(t_list))]
+    exp_gts = [get_std_gt(' '.join(t_list[i]), l_list[i]) for i in range(len(t_list))]
+    return exp_texts, exp_gts
 
 
 def read_output_from_file(path="data/jointslu/gpts/gpt3_output.json"):

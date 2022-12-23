@@ -3,7 +3,7 @@ from typing import List
 
 from evaluation.evaluation_utils import get_std_gt, std_gpt3_example
 from gpt3.gpt3_util import get_example_by_sim, load_examples, \
-    construct_oneshot_example, get_examples_gpt3, get_oneshot_prompt
+    construct_oneshot_example, get_examples_gpt3, construct_oneshot_prompt
 import openai
 import os
 import time
@@ -15,10 +15,6 @@ if not API_KEY:
     print("No API KEY found")
     exit()
 openai.api_key = API_KEY
-
-PROMPT_1 = "Extract the important information from this text and show them using key-value pairs.\n"
-PROMPT_2 = "Extract the intention of the user from the input text, an example is given: \n"
-PROMPT_3 = "Please summary the intention of the user in keyword form from the input text, an example is given: \n"
 
 
 def GPT3_Completion(prompt, sentences):
@@ -40,7 +36,7 @@ def zero_shot(prompt, sentences: List):
     GPT3_Completion(prompt, sentences)
 
 
-def one_shot(prompt, sentences: List, oneshot_examples: List):
+def one_shot(prompt, sentences: List, oneshot_examples: List, model_engine):
     # should be one example for each sentence
     assert len(sentences) == len(oneshot_examples)
     print(f"one-shot predicting for {len(sentences)} tests")
@@ -50,7 +46,7 @@ def one_shot(prompt, sentences: List, oneshot_examples: List):
         time.sleep(2.0)
         prompt_i = get_oneshot_prompt(prompt, oneshot_examples[i], sentences[i])
         try:
-            response = openai.Completion.create(engine="text-davinci-002",
+            response = openai.Completion.create(engine=model_engine,
                                                 prompt=prompt_i,
                                                 temperature=0,
                                                 max_tokens=256,
@@ -61,25 +57,32 @@ def one_shot(prompt, sentences: List, oneshot_examples: List):
     return results
 
 
-def one_shot_per_example(prompt, sentence, oneshot_example):
-    prompt_i = get_oneshot_prompt(prompt, oneshot_example, sentence)
+def one_shot_per_example(prompt, sentence, exp_text, exp_gt, model_engine):
+    # todo: different prompt has different solution
+    prompt_i, stop_sequence = construct_oneshot_prompt(prompt, exp_text, exp_gt, sentence)
+    print("prompt i for gpt3 one shot example: \n", prompt_i)
     try:
-        response = openai.Completion.create(engine="text-davinci-002",
+        response = openai.Completion.create(engine=model_engine,
                                             prompt=prompt_i,
                                             temperature=0,
                                             max_tokens=256,
-                                            top_p=1.0)
+                                            top_p=1.0,
+                                            stop_seq=stop_sequence)
         print(f"response for \n{sentence}\n", response["choices"][0]["text"])
         return response["choices"][0]["text"]
     except openai.error.RateLimitError:
         print("rate limit error")
 
 
-def gpt3jointslu(num, select=True, file_path="data/jointslu/gpt3/gpt3_output.json"):
+def gpt3jointslu(num, prompt, model_name, path, select):
+    "data/jointslu/gpt3/gpt3_output.json"
     """num: number of input texts to be tested,
+    model_version: the self-defined model version number, described in model_version.json
     select==Ture: choose examples that is similar to given input text"""
+    # if file path exists, create a new file
+
     # load test examples
-    global oneshot_examples
+    global exp_texts, exp_labels
     texts, labels = get_examples_gpt3("test", num=num)
     num_examples = len(texts)
     print(f"--- testing {len(texts)} examples ---")
@@ -91,25 +94,25 @@ def gpt3jointslu(num, select=True, file_path="data/jointslu/gpt3/gpt3_output.jso
         std_gts.append(std_gt)
     # load examples if choose==True
     examples = load_examples()
-    if select:
+    if select or select == "True":
         # For each sentence, find an example by similarity
         print("%%choose example by similarity")
         examples = get_example_by_sim(ts, examples)
-        oneshot_examples = construct_oneshot_example(examples)
+        exp_texts, exp_gts = construct_oneshot_example(examples)
     else:
         print("%%choose random examples")
         # choose random example for each text
         # todo: here should pick from selected examples or from all training data?
         idxs = [randint(0, len(examples) - 1) for _ in range(len(ts))]
-        oneshot_examples = construct_oneshot_example([examples[i] for i in idxs])
+        exp_texts, exp_gts = construct_oneshot_example([examples[i] for i in idxs])
     for i in range(num_examples):
-        response = one_shot_per_example(PROMPT_2, ts[i], oneshot_examples[i])
+        response = one_shot_per_example(prompt, ts[i], exp_texts[i], exp_gts[i], model_name)
         from datetime import date
         timestamp = str(date.today())
         exp_text, exp_gt = std_gpt3_example(examples[i])
         result = {
             "timestamp": timestamp,
-            "prompt": {"name": "PROMPT_3", "text": PROMPT_3},
+            "prompt": prompt,
             "exp_text": exp_text,
             "exp_gt": exp_gt,
             "text": ts[i],
@@ -117,6 +120,6 @@ def gpt3jointslu(num, select=True, file_path="data/jointslu/gpt3/gpt3_output.jso
             "prediction": response,
             "std_gt": std_gts[i]
         }
-        append_to_json(file_path=file_path, data=[result])
+        append_to_json(file_path=path, data=[result])
         print(f"result is appended \n{result}")
         time.sleep(2.0)
