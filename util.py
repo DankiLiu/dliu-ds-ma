@@ -65,7 +65,7 @@ def save_jointslu_labels(new_labels):
 
 def append_to_json(file_path, data):
     """append new data to current json file. data is a list of json dicts"""
-    f = open(file_path, 'r+')
+    f = open(file_path, 'a+')
     old_data = []
     try:
         old_data = json.load(f)  # a list of stored dicts in json file
@@ -92,7 +92,57 @@ def read_keys_from_json(path, *args):
     for arg in args:
         try:
             values[arg] = [item[arg] for item in data]
-            print("add item to values: ", values)
+            # print("add item to values: ", values)
         except KeyError:
             print(f"Missing key {arg} in {path} file")
     return values
+
+
+def get_gpt3_params(version):
+    f = open("model_version.json")
+    gpt3_data = json.load(f)["gpt3"]
+    for item in gpt3_data:
+        if item["version"] == version:
+            return item["prompt"], item["model_name"], item["select"]
+    return None, None, None
+
+
+def get3output_paths(parsing_v, pretrain_v, gpt3_v):
+    """return location of output files of three models given model version"""
+    parsing_p = create_output_file("parsing", parsing_v)
+    pretrain_p = create_output_file("pre-train", pretrain_v)
+    gpt3_p = create_output_file("gpt3", gpt3_v)
+    return parsing_p, pretrain_p, gpt3_p
+
+
+def create_output_file(model, v):
+    """create or check file existance according to version and return file location
+    """
+    path = "data/jointslu/"
+    if model == "parsing":
+        path = path + "parsing/parsing_outputs/"
+    elif model == "pre-train":
+        path = path + "pre-train/pre-train_outputs/"
+    elif model == "gpt3":
+        path = path + "gpt3/gpt3_outputs/"
+    else:
+        print(f"wrong model name [{model}] is given")
+        return
+    # create file name by version
+    from datetime import datetime
+    now = datetime.now()  # current date and time
+    day = now.strftime("%d")
+    month = now.strftime("%m")
+    file_name = day + month + 'v_' + v + '.json'
+
+    output_path = path + file_name
+    print(f"{model} version {v} output should store in {output_path}")
+    from os.path import exists
+    file_index = 1
+    while exists(output_path):
+        print(f"path already exists {output_path}")
+        file_name = day + month + '_' + v + file_index + '.json'
+        output_path = path + file_name
+        file_index = file_index + 1
+    open(output_path, 'a').close()
+    return output_path
