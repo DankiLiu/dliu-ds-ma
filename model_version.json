@@ -1,0 +1,20 @@
+{
+  "gpt3": [
+    {
+      "version": 0,
+      "prompt": "PROMPT_3",
+      "model": "text-davinci-002",
+      "select": "True",
+      "comment": "prompt: prompt name, every prompt has a way to generate examples and inputs to gpt3"
+    },
+    {
+      "version": 1,
+      "prompt": "ROBOT_TRANSLATOR",
+      "model": "text-davinci-003",
+      "select": "True",
+      "comment": ""
+    },
+    {
+    }
+  ]
+}
