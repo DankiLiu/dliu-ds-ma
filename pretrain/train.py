@@ -108,7 +108,7 @@ def post_processing(results):
             }
             print(new_dict, '\n')
             post_precessed.append(new_dict)
-    append_to_json(file_path="../data/jointslu/pre-train/pre-train_output.json", data=post_precessed)
+    append_to_json(file_path="../data/jointslu/pre-train/pre-train_outputs/pre-train_output.json", data=post_precessed)
 
 
 if __name__ == '__main__':
