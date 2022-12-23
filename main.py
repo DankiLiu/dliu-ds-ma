@@ -1,11 +1,25 @@
 import json
 
+from evaluation.evaluation_utils import merge_data
+from evaluation.plotting import plot_model_comparison
 from parse.parsing_evaluation import testing
 
 from gpt3.gpt3jointslu import gpt3jointslu
 from gpt3.gpt3_util import read_output_from_file
 from evaluation.evaluation import evaluate_model, evaluate_acc_f1
-from util import read_jointslu_labels
+from util import read_jointslu_labels, get_gpt3_params, get3output_paths
+
+
+def run_models(num, parsing_v, pretrain_v, gpt3_v):
+    """run all three models with defined model_version and store the results in ***_output.json"""
+    # get output files path
+    parsing_p, pretrain_p, gpt3_p = get3output_paths(parsing_v, pretrain_v, gpt3_v)
+    # get model parameters
+    prompt, model_name, select = get_gpt3_params(gpt3_v)
+    if prompt is None:
+        print(f"model version {gpt3_v} not avaliable")
+    gpt3jointslu(num, prompt, model_name, gpt3_p, select)
+
 
 
 def evaluate_all_labels():
@@ -52,7 +66,4 @@ def acc_f1_all_labels():
 
 
 if __name__ == '__main__':
-    # evaluate_all_labels()
-    # evaluate_all()
-    # acc_f1_all()
-    acc_f1_all_labels()
+    merge_data("pre-train", "ALL")
