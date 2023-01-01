@@ -1,3 +1,4 @@
+import os
 from json import JSONDecodeError
 
 import requests
@@ -63,17 +64,18 @@ def save_jointslu_labels(new_labels):
         json.dump(data, f, indent=4)
 
 
-def append_to_json(file_path, data):
+def append_to_json(file_path, new_data):
     """append new data to current json file. data is a list of json dicts"""
-    f = open(file_path, 'a+')
-    old_data = []
-    try:
-        old_data = json.load(f)  # a list of stored dicts in json file
-    except JSONDecodeError:
-        pass
-    new_data = [*old_data, *data]
-    f.seek(0)
-    json.dump(new_data, f, indent=2)
+    f = open(file_path, 'r')
+    data = []
+    if os.path.getsize(file_path) > 0:
+        data = json.load(f)
+    else:
+        print(f"{file_path} file is empty")
+    f.close()
+    data.append(new_data)
+    f = open(file_path, 'w')
+    json.dump(data, f, indent=2)
     f.close()
 
 
@@ -103,16 +105,20 @@ def get_gpt3_params(version):
     gpt3_data = json.load(f)["gpt3"]
     for item in gpt3_data:
         if item["version"] == version:
-            return item["prompt"], item["model_name"], item["select"]
+            return item["prompt"], item["model"], item["select"]
     return None, None, None
 
 
 def get3output_paths(parsing_v, pretrain_v, gpt3_v):
-    """return location of output files of three models given model version"""
-    parsing_p = create_output_file("parsing", parsing_v)
-    pretrain_p = create_output_file("pre-train", pretrain_v)
-    gpt3_p = create_output_file("gpt3", gpt3_v)
-    return parsing_p, pretrain_p, gpt3_p
+    return get_output_path("parsing", parsing_v), \
+           get_output_path("pre-train", pretrain_v), \
+           get_output_path("gpt3", gpt3_v)
+
+
+def get_output_path(model_name, model_version):
+    """return output path given model name and version,
+    model versions are defined in model_version.json file"""
+    return create_output_file(model_name, model_version)
 
 
 def create_output_file(model, v):
@@ -133,16 +139,16 @@ def create_output_file(model, v):
     now = datetime.now()  # current date and time
     day = now.strftime("%d")
     month = now.strftime("%m")
-    file_name = day + month + 'v_' + v + '.json'
+    file_name = month + day + 'v' + str(v) + '.json'
 
     output_path = path + file_name
-    print(f"{model} version {v} output should store in {output_path}")
     from os.path import exists
     file_index = 1
     while exists(output_path):
         print(f"path already exists {output_path}")
-        file_name = day + month + '_' + v + file_index + '.json'
+        file_name = month + day + 'v' + str(v) + '_' + str(file_index) + '.json'
         output_path = path + file_name
         file_index = file_index + 1
-    open(output_path, 'a').close()
+    open(output_path, 'a+').flush()
+    print(f"{output_path} created")
     return output_path

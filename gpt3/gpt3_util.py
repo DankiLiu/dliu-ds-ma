@@ -1,24 +1,30 @@
 import json
+import os
 from typing import List
 
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 
+from data.data_processing import generate_gpt3_examples_file, data_path_by_lv
 from evaluation.evaluation_utils import get_std_gt
 
 PROMPT_1 = "Extract the important information from this text and show them using key-value pairs.\n"
 PROMPT_2 = "Extract the intention of the user from the input text, an example is given: \n"
-PROMPT_3 = "Please summary the intention of the user in keyword form from the input text, an example is given: \n" \
-           "input>{exp_text}\noutput>{exp_gt}\ninput>{input_sentence}\noutput>"
+PROMPT_3 = "Please summary the intention of the user in keyword form from the input text\n{oneshot}input>{" \
+           "input_sentence}\noutput> "
+
+ONESHOT_PROMPT_3 = ", an example is given: \ninput>{exp_text}\noutput>{exp_gt}"
 ROBOT_TRANSLATOR = "A robot is given a command in natural language sentence, " \
                    "but it can only help the user when the important information that shows user's intention is " \
                    "translated to key-value pairs, such as \"someKey: someValue; ...\", where values are a word " \
-                   "or a phrase in the command sentence and keys are labels describe the values.\n" \
-                   "\"\"\"\nfor example the command sentence \"{exp_text}\" will be translated to \"{exp_gt}\"\"\"\"\n"\
-                   "given a command \"{input_sentence}\"\"\"\"\nI want to translate the command sentence so that the robot understands it.\"\"\"\n"
+                   "or a phrase in the command sentence and keys are labels describe the values.\n{oneshot}" \
+                   "given command sentence: {input_sentence}\nI want to translate the command sentence so that the " \
+                   "robot understands it.\ntranslation:"
+
+ONESHOT_ROBOT_TRANSLATOR = "for example: \ncommand sentence: {exp_text}\ntranslation: {exp_gt}\n"
 
 
-def load_examples():
+def load_examples(dataset, labels_version):
     """
     load examples selected from training data
     examples: List
@@ -26,7 +32,16 @@ def load_examples():
         "text": *,
         "labels": *}
     """
-    file = open("data/jointslu/gpt3/examples.json", 'r')
+    # check the existence of examples file with labels_version
+    folder_name = 'data/' + dataset + '/gpt3/'
+    file_name = 'examples' + labels_version + '.json'
+    path = folder_name + file_name
+    if not os.path.exists(path):
+        generate_gpt3_examples_file(dataset=dataset,
+                                    datatype="train",
+                                    labels_version=labels_version,
+                                    in_file=path)
+    file = open(path)
     data = json.load(file)
     examples = []
     for exp in data:
@@ -67,17 +82,14 @@ def get_example_by_sim(texts: List, examples):
     return [examples[idx] for idx in idxs]
 
 
-def get_examples_gpt3(data_type="train", num=1, do_shuffle=False):
+def get_samples_gpt3(labels_version, num, data_type, do_shuffle):
     """return a list of text and a list of its corresponding labels,
-    return one example by default"""
+    return one example by default, samples are different from examples in gpt3"""
     # get example from parsing/train.json by default
-    file_name = "data/jointslu/pre-train/b_train.json"
-    if data_type == "test":
-        file_name = "data/jointslu/pre-train/b_test.json"
-    elif data_type == "val":
-        file_name = "data/jointslu/pre-train/b_val.json"
-
-    f = open(file_name, 'r')
+    file_path = data_path_by_lv(dataset="jointslu",
+                                data_type=data_type,
+                                labels_version=labels_version)
+    f = open(file_path, 'r')
     import json
     from random import shuffle
     data = json.load(f)
@@ -90,8 +102,22 @@ def get_examples_gpt3(data_type="train", num=1, do_shuffle=False):
     return text, labels
 
 
-def get_example_keyword_pair(data_type, num=0, do_shuffle=False):
-    text, labels = get_examples_gpt3(data_type, num, do_shuffle)
+def get_labels_ts_stdgts(labels_version, num, data_type, do_shuffle=False):
+    """return texts (str) and standard ground truth for selected samples"""
+    texts, labels = get_samples_gpt3(labels_version,
+                                     num,
+                                     data_type=data_type,
+                                     do_shuffle=do_shuffle)
+    std_gts = []
+    ts = [' '.join(t) for t in texts]
+    for i in range(len(texts)):
+        std_gt = get_std_gt(ts[i], labels[i])
+        std_gts.append(std_gt)
+    return labels, ts, std_gts
+
+
+def get_example_keyword_pair(labels_version, num, data_type, do_shuffle=False):
+    text, labels = get_samples_gpt3(labels_version, data_type, num, do_shuffle)
     outputs = []
     for i, label in enumerate(labels):
         text_split = text[i].split(' ')
@@ -101,21 +127,31 @@ def get_example_keyword_pair(data_type, num=0, do_shuffle=False):
         for idx, tok in enumerate(label_tok):
             if tok != 'O':
                 output = output + text_split[idx] + ':' + tok + ";"
-        print(f"{i}th text {text_split[i]}\noutput {output}")
+        print(f"[get_example_keyword_pair]\n{i}th text {text_split[i]}\noutput {output}")
         outputs.append(output)
     return text, outputs
+
+
+def construct_zeroshot_prompt(prompt, sentence):
+    """return the constructed prompt and stop sequence"""
+    if prompt == "PROMPT_3":
+        return PROMPT_3.format(oneshot="",
+                               input_sentence=sentence)
+    elif prompt == "ROBOT_TRANSLATOR":
+        return ROBOT_TRANSLATOR.format(oneshot="",
+                                       input_sentence=sentence)
 
 
 def construct_oneshot_prompt(prompt, exp_text, exp_gt, sentence):
     """return the constructed prompt and stop sequence"""
     if prompt == "PROMPT_3":
-        return PROMPT_3.format(exp_text=exp_text,
-                               exp_gt=exp_gt,
-                               input_sentence=sentence), "output>"
+        return PROMPT_3.format(oneshot=ONESHOT_PROMPT_3.format(exp_text=exp_text,
+                                                               exp_gt=exp_gt),
+                               input_sentence=sentence)
     elif prompt == "ROBOT_TRANSLATOR":
-        return ROBOT_TRANSLATOR.format(exp_text=exp_text,
-                                       exp_gt=exp_gt,
-                                       input_sentence=sentence), "\"\"\"\n"
+        return ROBOT_TRANSLATOR.format(oneshot=ONESHOT_ROBOT_TRANSLATOR.format(exp_text=exp_text,
+                                                                               exp_gt=exp_gt),
+                                       input_sentence=sentence)
 
 
 def construct_oneshot_example(examples: List):
