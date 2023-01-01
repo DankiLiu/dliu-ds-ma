@@ -109,6 +109,15 @@ def get_gpt3_params(version):
     return None, None, None
 
 
+def get_parsing_params(version):
+    f = open("model_version.json")
+    parsing_data = json.load(f)["parsing"]
+    for item in parsing_data:
+        if item["version"] == version:
+            return item["shuffle"]
+    return None
+
+
 def get3output_paths(parsing_v, pretrain_v, gpt3_v):
     return get_output_path("parsing", parsing_v), \
            get_output_path("pre-train", pretrain_v), \

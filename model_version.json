@@ -16,5 +16,11 @@
     },
     {
     }
+  ],
+  "parsing": [
+    {
+      "version": 0,
+      "shuffle": "true"
+    }
   ]
 }
