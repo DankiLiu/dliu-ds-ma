@@ -89,18 +89,19 @@ def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine):
     return response["choices"][0]["text"]
 
 
-def gpt3jointslu(num, prompt, model_name, path, select, labels_version):
+def gpt3jointslu(num, prompt, model_name, testing_file, path, select, labels_version):
     """num: number of input texts to be tested,
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
     # load test examples
-    labels, ts, std_gts = get_labels_ts_stdgts(labels_version, num, "test")
+    labels, ts, std_gts = get_labels_ts_stdgts(testing_file, labels_version, num, "test")
     num_examples = len(ts)
     global exp_texts, exp_labels
     print(f"--- [gpt3] testing {len(ts)} examples ---")
     # construct texts and ground truths
     # load examples if choose==True
-    examples = load_examples(dataset="jointslu", labels_version=labels_version)
+    examples = load_examples(dataset="jointslu",
+                             labels_version=labels_version)
     if select or select == "True":
         # For each sentence, find an example by similarity
         print("%% choose example by similarity")

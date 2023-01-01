@@ -185,7 +185,7 @@ def create_training_data(shuffle=False):
         new_data.append(new_i)
     f.close()
     # store in file
-    with open("jointslu/parsing/train.json", 'w') as f:
+    with open("jointslu/training_data/train.json", 'w') as f:
         json.dump(new_data,
                   f,
                   indent=4)
@@ -227,6 +227,44 @@ def get_simplified_labels(oris: List, labels_version):
     return labels
 
 
+def check_training_data(dataset, labels_version):
+    """check whether data files are ready and return the paths"""
+    folder_path = "data/" + dataset + "/training_data/labels" + labels_version
+    print(f"lv{labels_version}: training data should be stored in {folder_path}")
+    train_p = folder_path + "/train.json"
+    test_p = folder_path + "/test.json"
+    val_p = folder_path + "/val.json"
+    # if folder path exist and not empty, then the data exists and return True
+    if not os.path.isdir(folder_path):
+        os.mkdir(folder_path)
+    if os.path.exists(train_p) and os.path.exists(test_p) and os.path.exists(val_p):
+        # todo: check existence of all files, if not exist, create
+        return train_p, test_p, val_p
+    else:
+        # construct training data
+        for data_type in ["train", "test", "val"]:
+            try:
+                construct_training_data(data_type=data_type,
+                                        labels_version=labels_version)
+            except FileNotFoundError:
+                print(f"fail to construct training data for {data_type}")
+                return None, None, None
+        return train_p, test_p, val_p
+
+
+def construct_training_data(data_type, labels_version):
+    """change the annotated data for training pre-trained model to simplified labels"""
+    path = "data/jointslu/training_data/" + data_type + ".json"
+    new_path = "data/jointslu/training_data/labels" + labels_version + "/" \
+               + data_type + ".json"
+    file = open(path, 'r')
+    data = json.load(file)
+    new_data = construct_data(data, labels_version)
+    with open(new_path, 'w+') as f:
+        json.dump(new_data, f, indent=4)
+        f.close()
+
+
 def construct_data(data, labels_version):
     """change the labels to simplified labels and add bos and eos to the label"""
     new_data = []
@@ -246,19 +284,6 @@ def construct_data(data, labels_version):
         })
         i = i + 1
     return new_data
-
-
-def construct_training_data(data_type, labels_version):
-    """change the annotated data for training pre-trained model to simplified labels"""
-    path = "data/jointslu/training_data/" + data_type + ".json"
-    new_path = "data/jointslu/training_data/labels" + labels_version + "/" \
-               + data_type + ".json"
-    file = open(path)
-    data = json.load(file)
-    new_data = construct_data(data, labels_version)
-    with open(new_path, 'w') as f:
-        json.dump(new_data, f, indent=4)
-        f.close()
 
 
 def generate_gpt3_examples_file(dataset, datatype, labels_version, in_file):
@@ -295,32 +320,4 @@ def generate_gpt3_examples_file(dataset, datatype, labels_version, in_file):
     print(f"created examples file under {in_file}")
 
 
-def data_path_by_lv(dataset, data_type, labels_version):
-    """return path
-    dataset: name of a dataset, [jointslu, ...]
-    data_type: [train, test, val]"""
-    folder_path = 'data/' + dataset + '/training_data/labels' + labels_version + '/'
-    file_name = data_type + '.json'
-    return folder_path + file_name
 
-
-def check_training_data(labels_version):
-    """given labels_version, the existence of training data should be checked,
-    if not exist, then create training data"""
-    folder_path = "data/jointslu/training_data/labels" + labels_version
-    print(f"lv{labels_version}: training data should be stored in {folder_path}")
-    # if folder path exist and not empty, then the data exists and return True
-    if not os.path.isdir(folder_path):
-        os.mkdir(folder_path)
-    if os.listdir(folder_path):
-        return True
-    else:
-        # construct training data
-        for data_type in ["train", "test", "val"]:
-            try:
-                construct_training_data(data_type=data_type,
-                                        labels_version=labels_version)
-            except FileNotFoundError:
-                print(f"fail to construct training data for {data_type}")
-                return False
-        return True

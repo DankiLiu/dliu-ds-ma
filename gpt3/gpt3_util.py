@@ -82,14 +82,11 @@ def get_example_by_sim(texts: List, examples):
     return [examples[idx] for idx in idxs]
 
 
-def get_samples_gpt3(labels_version, num, data_type, do_shuffle):
+def get_samples_gpt3(testing_file, labels_version, num, data_type, do_shuffle):
     """return a list of text and a list of its corresponding labels,
     return one example by default, samples are different from examples in gpt3"""
     # get example from parsing/train.json by default
-    file_path = data_path_by_lv(dataset="jointslu",
-                                data_type=data_type,
-                                labels_version=labels_version)
-    f = open(file_path, 'r')
+    f = open(testing_file, 'r')
     import json
     from random import shuffle
     data = json.load(f)
@@ -102,9 +99,10 @@ def get_samples_gpt3(labels_version, num, data_type, do_shuffle):
     return text, labels
 
 
-def get_labels_ts_stdgts(labels_version, num, data_type, do_shuffle=False):
+def get_labels_ts_stdgts(testing_file, labels_version, num, data_type, do_shuffle=False):
     """return texts (str) and standard ground truth for selected samples"""
-    texts, labels = get_samples_gpt3(labels_version,
+    texts, labels = get_samples_gpt3(testing_file,
+                                     labels_version,
                                      num,
                                      data_type=data_type,
                                      do_shuffle=do_shuffle)
