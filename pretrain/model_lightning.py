@@ -2,17 +2,17 @@ from transformers import AdamW, BertForTokenClassification
 
 import torch
 import pytorch_lightning as pl
-from data.data_processing import read_jointslu_labels_dict as lbd
 
 
 class LitBertTokenClassification(pl.LightningModule):
-    def __init__(self, tokenizer, learning_rate=2.2908676527677725e-05, batch_size=1):
+    def __init__(self, tokenizer, labels_dict, learning_rate=2.2908676527677725e-05, batch_size=1):
         super().__init__()
+        self.labels_dict = labels_dict
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.model = BertForTokenClassification.from_pretrained(
             "distilbert-base-uncased",
-            num_labels=69)
+            num_labels=len(self.labels_dict))
         self.tokenizer = tokenizer
         self.model.resize_token_embeddings(len(self.tokenizer))
 
@@ -50,8 +50,7 @@ class LitBertTokenClassification(pl.LightningModule):
         # print(input_ids)
         # print(output.logits.size())
         # decode the labels
-        labels_dict = lbd()
-        new_dict = dict((v, k) for k, v in labels_dict.items())
+        new_dict = dict((v, k) for k, v in self.labels_dict.items())
         # print(new_dict)
         results = []
         for i in range(len(input_ids)):
@@ -75,8 +74,7 @@ class LitBertTokenClassification(pl.LightningModule):
     def predict_step(self, batch, batch_idx, dataloader_idx: int = 0):
         input_ids, labels = batch["input_ids"], batch["labels"]
         output = self.model(input_ids=input_ids)
-        labels_dict = lbd()
-        new_dict = dict((v, k) for k, v in labels_dict.items())
+        new_dict = dict((v, k) for k, v in self.labels_dict.items())
         # print(new_dict)
         results = []
         for i in range(len(input_ids)):

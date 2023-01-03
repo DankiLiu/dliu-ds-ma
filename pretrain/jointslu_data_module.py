@@ -5,8 +5,10 @@ from pretrain.jointslu_dataset import JointSluDataset
 
 
 class JointsluDataModule(pl.LightningDataModule):
-    def __init__(self, tokenizer, train_bsz=1, test_bsz=1):
+    def __init__(self, dataset, labels_version, tokenizer, train_bsz=1, test_bsz=1):
         super().__init__()
+        self.dataset = dataset
+        self.labels_version = labels_version
         self.train_bsz = train_bsz
         self.test_bsz = test_bsz
         self.train_dataset, self.val_dataset, self.test_dataset = \
@@ -14,7 +16,7 @@ class JointsluDataModule(pl.LightningDataModule):
         self.tokenizer = tokenizer
 
     def _create_data(self, split):
-        return JointSluDataset.create_data(split, self.tokenizer)
+        return JointSluDataset.create_data(self.dataset, self.labels_version, split, self.tokenizer)
 
     def prepare_data(self) -> None:
         """Read data from disk and convert it to

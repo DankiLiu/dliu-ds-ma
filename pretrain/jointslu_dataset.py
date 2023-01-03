@@ -8,6 +8,8 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from transformers import BatchEncoding
 
+from data.data_processing import get_labels_dict
+
 DiaAnnotationFileDictKey = Literal[
     'id',
     'text',
@@ -23,21 +25,6 @@ DiaBatchDictKey = Literal[
     'batch_text',  # b * L
     'batch_labels'  # B * L
 ]
-if False:
-    # Create labels dictionary
-    f = open("../data/jointslu/labels.csv")
-    import pandas as pd
-    labels_list = pd.read_csv(f, usecols=["simplified label"]).values
-    labels = list(set(item for sublist in labels_list for item in sublist))
-    labels_dict = {labels[i]: i for i in range(len(labels))}
-    # save into a file
-    with open("../data/jointslu/pre-train/labels.json", 'w') as f:
-        json.dump(labels_dict, f, indent=4)
-# Load labels
-f = open("../data/jointslu/pre-train/labels.json", 'r')
-labels_dict = json.load(f)
-print(f"label size is {len(labels_dict)}")
-f.close()
 DatasetSplitName = Literal["train", "val", "test"]
 DiaSample = Dict[str, Union[torch.Tensor, str, int]]
 DiaBatch = Dict[str, Union[List, Tensor]]
@@ -47,10 +34,12 @@ class JointSluDataset(Dataset):
     def __init__(self,
                  tokenizer,
                  split,
-                 annotations: List[Dict[str, Union[str, int]]]):
+                 annotations: List[Dict[str, Union[str, int]]],
+                 labels_dict):
         self.tokenizer = tokenizer
         self.split = split
         self.annotations = annotations
+        self.labels_dict = labels_dict
 
     def __len__(self):
         return len(self.annotations)
@@ -86,10 +75,10 @@ class JointSluDataset(Dataset):
                     label_ids.append(-100)
                 else:
                     try:
-                        label_ids.append(labels_dict[labels_tok[i]])
+                        label_ids.append(self.labels_dict[labels_tok[i]])
                     except KeyError:
                         print("Label not found")
-                        label_ids.append(len(labels_dict))
+                        label_ids.append(len(self.labels_dict))
             labels_ids.append(label_ids)
 
         batch = BatchEncoding({"input_ids": input_ids,
@@ -99,19 +88,23 @@ class JointSluDataset(Dataset):
         return result
 
     @classmethod
-    def create_data(cls, split: DatasetSplitName,
+    def create_data(cls, dataset, labels_version, split: DatasetSplitName,
                     tokenizer: Tokenizer):
+        # load labels_dict
+        labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+        data_folder = "data/" + dataset + "/training_data/labels" + labels_version
         path = None
+        # todo: if path not exist, construct training data. or need I?
         if split == 'train':
-            path = '../data/jointslu/pre-train/b_train.json'
+            path = data_folder + "/train.json"
         elif split == 'test':
-            path = '../data/jointslu/pre-train/b_test.json'
+            path = data_folder + "/test.json"
         elif split == 'val':
-            path = '../data/jointslu/pre-train/b_val.json'
+            path = data_folder + "/val.json"
         if path:
-            with open(path) as f:
+            with open(path, 'r') as f:
                 annotations = json.load(f)
-                return cls(tokenizer, split, annotations)
+                return cls(tokenizer, split, annotations, labels_dict)
         else:
             print(f"{split} path does not exist")
             return None

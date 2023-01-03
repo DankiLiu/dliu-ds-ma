@@ -2,10 +2,10 @@
 # adding Folder_2/subfolder to the system path
 # sys.path.insert(0, '/home/daliu/Documents/master-thesis/code/dliu-ds-ma')
 
-from pytorch_lightning import Trainer, tuner
+from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
-from transformers import AutoTokenizer, BertTokenizer
-from data.data_processing import store_jointslu_labels
+from transformers import BertTokenizer
+from data.data_processing import store_jointslu_labels, get_labels_dict
 from pretrain.model_lightning import LitBertTokenClassification
 from pretrain.jointslu_data_module import JointsluDataModule
 from evaluation.evaluation_utils import get_std_gt
@@ -30,21 +30,31 @@ def define_tokenizer():
     return tokenizer
 
 
-def train():
+def train(model_version, dataset, labels_version):
+    labels_dict = get_labels_dict(dataset, labels_version)
     tokenizer = define_tokenizer()
-    data_module = JointsluDataModule(tokenizer=tokenizer)
-    model = LitBertTokenClassification(tokenizer=tokenizer, learning_rate=2.9908676527677725e-05)
-
-    logger = TensorBoardLogger("pretrain/model_sim", name="bert_jointslu")
+    data_module = JointsluDataModule(dataset=dataset,
+                                     labels_version=labels_version,
+                                     tokenizer=tokenizer)
+    model = LitBertTokenClassification(labels_dict=labels_dict,
+                                       tokenizer=tokenizer,
+                                       learning_rate=2.9908676527677725e-05)
+    log_folder = "v" + str(model_version)
+    name = dataset + "_lv" + str(labels_version)
+    logger = TensorBoardLogger(log_folder, name=name)
     trainer = Trainer(max_epochs=3, logger=logger)
     trainer.fit(model, datamodule=data_module)
 
 
-def auto_lr_bz_train():
+def auto_lr_bz_train(dataset, labels_version):
     """train model with best batch size and learning rate found by lightning"""
+    labels_dict = get_labels_dict(dataset, labels_version)
     tokenizer = define_tokenizer()
-    model = LitBertTokenClassification(tokenizer=tokenizer)
-    data_module = JointsluDataModule(tokenizer=tokenizer)
+    model = LitBertTokenClassification(labels_dict=labels_dict,
+                                       tokenizer=tokenizer)
+    data_module = JointsluDataModule(dataset=dataset,
+                                     labels_version=labels_version,
+                                     tokenizer=tokenizer)
 
     logger = TensorBoardLogger("pretrain/auto_sim", name="bert_jointslu")
     trainer = Trainer(auto_lr_find=True,
