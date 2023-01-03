@@ -1,50 +1,5 @@
 import os
-from json import JSONDecodeError
-
-import requests
-from nltk.parse.corenlp import CoreNLPServer
 import json
-
-
-def corenlp_server_start(path_to_jar=None,
-                         path_to_models_jar=None):
-    """start corenlp server"""
-    # Only in testing phase
-    path_to_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0.jar'
-    path_to_models_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0-models.jar'
-    if not path_to_jar:
-        path_to_jar = input("input the path to stanford-corenlp-4.5.0.jar/n")
-    if not path_to_models_jar:
-        path_to_models_jar = input("input the path to stanford-corenlp-4.5.0-model.jar/n")
-    # Server
-    server = CoreNLPServer(path_to_jar=path_to_jar,
-                           path_to_models_jar=path_to_models_jar)
-    print("Starting corenlp server ...")
-    server.start()
-    return server
-
-
-def corenlp_server_stop(server):
-    """stop corenlp server"""
-    server.stop()
-    print("Corenlp server stopped...")
-
-
-def server_is_running(url):
-    """return True if corenlp server is running, otherwise False"""
-    try:
-        page = requests.get(url)
-        status_code = page.status_code
-    except Exception as e:
-        print(e)
-        return False
-    print(f"status code from {url} is {status_code}")
-    if status_code == 200:
-        print("server running, ready to parse")
-        return True
-    else:
-        print("server not running")
-        return False
 
 
 def read_jointslu_labels():
@@ -79,14 +34,6 @@ def append_to_json(file_path, new_data):
     f.close()
 
 
-def read_from_json(path):
-    """read and return the json file content"""
-    file = open(path, 'r')
-    data = json.load(file)
-    file.close()
-    return data
-
-
 def read_keys_from_json(path, *args):
     """return content of keys (args) of json file"""
     data = read_from_json(path)
@@ -98,6 +45,14 @@ def read_keys_from_json(path, *args):
         except KeyError:
             print(f"Missing key {arg} in {path} file")
     return values
+
+
+def read_from_json(path):
+    """read and return the json file content"""
+    file = open(path, 'r')
+    data = json.load(file)
+    file.close()
+    return data
 
 
 def get_gpt3_params(version):
@@ -114,7 +69,7 @@ def get_parsing_params(version):
     parsing_data = json.load(f)["parsing"]
     for item in parsing_data:
         if item["version"] == version:
-            return item["shuffle"]
+            return item["dataset"], item["shuffle"]
     return None
 
 
@@ -124,16 +79,16 @@ def get3output_paths(parsing_v, pretrain_v, gpt3_v):
            get_output_path("gpt3", gpt3_v)
 
 
-def get_output_path(model_name, model_version):
+def get_output_path(model_name, dataset, model_version):
     """return output path given model name and version,
     model versions are defined in model_version.json file"""
-    return create_output_file(model_name, model_version)
+    return create_output_file(model_name, dataset, model_version)
 
 
-def create_output_file(model, v):
+def create_output_file(model, dataset, v):
     """create or check file existance according to version and return file location
     """
-    path = "data/jointslu/"
+    path = "data/" + dataset + "/"
     if model == "parsing":
         path = path + "parsing/parsing_outputs/"
     elif model == "pre-train":
