@@ -119,10 +119,10 @@ def set_cls_sep_tokens():
     outfile.close()
 
 
-def get_labels_dict(labels_version):
+def get_labels_dict(dataset, labels_version):
     """return labels in dictionary form, one label matches to one index number"""
     global labels_path, f
-    file_path = "data/jointslu/pre-train/labels" + "labels_version" + ".json"
+    file_path = "data/" + dataset + "/labels/labels" + labels_version + ".json"
     if os.path.exists(file_path):
         f = open(file_path)
         labels_dict = json.load(f)
@@ -286,15 +286,13 @@ def construct_data(data, labels_version):
     return new_data
 
 
-def generate_gpt3_examples_file(dataset, datatype, labels_version, in_file):
+def generate_gpt3_examples_file(dataset, labels_version, in_file):
     """select an example for each label and store into file, number suggests the labels_version"""
     examples = []
     label_dict = get_labels_dict(labels_version)
     labels = list(label_dict.keys())
     # open pre-train training data file
-    path = data_path_by_lv(dataset=dataset,
-                           data_type=datatype,
-                           labels_version=labels_version)
+    path = "data/" + dataset + "/gpt3/examples" + labels_version + ".json"
     f = open(path, 'r')
     data = json.load(f)
     for idx, label in enumerate(labels):
@@ -320,4 +318,26 @@ def generate_gpt3_examples_file(dataset, datatype, labels_version, in_file):
     print(f"created examples file under {in_file}")
 
 
+def get_samples(file_path, model_name, num, do_shuffle):
+    """return required data for each model,
+    gpt3: return texts and labels without bos and eos labels
+    parsing: return texts and labels without bos and eos
+    pre-train: return texts and labels
+    """
+    f = open(file_path, 'r')
+    import json
+    from random import shuffle
+    data = json.load(f)
+    length = len(data) if num == 0 else num
+    if do_shuffle:
+        shuffle(data)
+    if model_name == "gpt3" or model_name == "parsing":
+        # remove BOS and EOS
+        text = [i["text"][1: len(i["text"]) - 1] for i in data[0:length]]
+        labels = [i["labels"][1: len(i["text"]) - 1] for i in data[0:length]]
+        return text, labels
+    elif model_name == "pre-train":
+        text = [i["text"] for i in data[0:length]]
+        labels = [i["labels"] for i in data[0:length]]
+        return text, labels
 
