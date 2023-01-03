@@ -1,8 +1,6 @@
 import json
 
 from data.data_processing import check_training_data
-from evaluation.evaluation_utils import merge_data
-from parse.parsing import testing
 
 from gpt3.gpt3 import gpt3jointslu
 from evaluation.evaluation import evaluate_model, evaluate_acc_f1
@@ -19,6 +17,7 @@ def test_model(model_name, num, model_version, dataset, labels_version):
     print("=============[ run model testing ]==============")
     print(f"1. {model_name} model-v{model_version}, lv{labels_version}")
     output_file = get_output_path(model_name=model_name,
+                                  dataset=dataset,
                                   model_version=model_version)
     print(f"output file >> {output_file}")
     # check if training file is available
@@ -27,29 +26,36 @@ def test_model(model_name, num, model_version, dataset, labels_version):
         print("data files are missing")
         return
     print("2. got data paths")
+    # todo: check all labels files. labels.csv(complicated and simplified)
+    #  label.json for pre-train and parsing, if not exist, then create
     # run model with name
     if model_name == "gpt3":
         print("3. run gpt3 model with testing data file")
-        run_gpt3_model(num=num,
+        run_gpt3_model(dataset=dataset,
+                       num=num,
                        model_version=model_version,
                        labels_version=labels_version,
                        testing_file=test_fp,
                        output_file=output_file)
     if model_name == "parsing":
-        run_parsing_model(num, model_version, output_file, labels_version)
+        run_parsing_model(num,
+                          model_version,
+                          output_file,
+                          labels_version)
 
 
-def run_gpt3_model(num, model_version, labels_version, testing_file, output_file):
+def run_gpt3_model(dataset, num, model_version, labels_version, testing_file, output_file):
     """run num tests of gpt3 model given model_version and labels_version"""
     prompt, model_name, select = get_gpt3_params(model_version)
     if prompt is None:
         print(f"model v{model_version} not avaliable, run gpt3 model failed")
         return
-    gpt3jointslu(num=num,
+    gpt3jointslu(dataset=dataset,
+                 num=num,
                  prompt=prompt,
                  model_name=model_name,
                  testing_file=testing_file,
-                 path=output_file,
+                 output_path=output_file,
                  select=select,
                  labels_version=labels_version)
 
@@ -62,7 +68,7 @@ def run_parsing_model(num, model_version, output_file, labels_version):
 
 def evaluate_all_labels():
     # read all simplified labels
-    f = open("data/jointslu/pre-train/labels00.json")
+    f = open("data/jointslu/labels/labels00.json")
     labels_dict = json.load(f)
     f.close()
     labels = list(labels_dict.keys())
@@ -90,7 +96,7 @@ def acc_f1_all():
 
 def acc_f1_all_labels():
     # read all simplified labels
-    f = open("data/jointslu/pre-train/labels00.json")
+    f = open("data/jointslu/labels/labels00.json")
     labels_dict = json.load(f)
     f.close()
     labels = list(labels_dict.keys())

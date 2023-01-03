@@ -5,7 +5,7 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 
-from data.data_processing import generate_gpt3_examples_file, data_path_by_lv
+from data.data_processing import generate_gpt3_examples_file, data_path_by_lv, get_samples
 from evaluation.evaluation_utils import get_std_gt
 
 PROMPT_1 = "Extract the important information from this text and show them using key-value pairs.\n"
@@ -82,30 +82,12 @@ def get_example_by_sim(texts: List, examples):
     return [examples[idx] for idx in idxs]
 
 
-def get_samples_gpt3(testing_file, labels_version, num, data_type, do_shuffle):
-    """return a list of text and a list of its corresponding labels,
-    return one example by default, samples are different from examples in gpt3"""
-    # get example from parsing/train.json by default
-    f = open(testing_file, 'r')
-    import json
-    from random import shuffle
-    data = json.load(f)
-    length = len(data) if num == 0 else num
-    if do_shuffle:
-        shuffle(data)
-    # remove BOS and EOS
-    text = [i["text"][1: len(i["text"]) - 1] for i in data[0:length]]
-    labels = [i["labels"][1: len(i["text"]) - 1] for i in data[0:length]]
-    return text, labels
-
-
-def get_labels_ts_stdgts(testing_file, labels_version, num, data_type, do_shuffle=False):
+def get_labels_ts_stdgts(testing_file, num, do_shuffle=False):
     """return texts (str) and standard ground truth for selected samples"""
-    texts, labels = get_samples_gpt3(testing_file,
-                                     labels_version,
-                                     num,
-                                     data_type=data_type,
-                                     do_shuffle=do_shuffle)
+    texts, labels = get_samples(file_path=testing_file,
+                                model_name="gpt3",
+                                num=num,
+                                do_shuffle=do_shuffle)
     std_gts = []
     ts = [' '.join(t) for t in texts]
     for i in range(len(texts)):
@@ -114,8 +96,9 @@ def get_labels_ts_stdgts(testing_file, labels_version, num, data_type, do_shuffl
     return labels, ts, std_gts
 
 
+# todo: usage of this function
 def get_example_keyword_pair(labels_version, num, data_type, do_shuffle=False):
-    text, labels = get_samples_gpt3(labels_version, data_type, num, do_shuffle)
+    text, labels = get_samples(file_path, model_name, num, do_shuffle)
     outputs = []
     for i, label in enumerate(labels):
         text_split = text[i].split(' ')

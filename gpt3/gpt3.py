@@ -1,7 +1,6 @@
 from random import randint
 from typing import List
 
-from evaluation.evaluation_utils import get_std_gt, std_gpt3_example
 from gpt3.gpt3_util import get_example_by_sim, load_examples, \
     construct_oneshot_example, construct_oneshot_prompt, get_samples_gpt3, \
     construct_zeroshot_prompt, get_labels_ts_stdgts
@@ -89,18 +88,19 @@ def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine):
     return response["choices"][0]["text"]
 
 
-def gpt3jointslu(num, prompt, model_name, testing_file, path, select, labels_version):
+def gpt3jointslu(dataset, num, prompt, model_name, testing_file, output_path, select, labels_version):
     """num: number of input texts to be tested,
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
     # load test examples
-    labels, ts, std_gts = get_labels_ts_stdgts(testing_file, labels_version, num, "test")
+    labels, ts, std_gts = get_labels_ts_stdgts(testing_file=testing_file,
+                                               num=num)
     num_examples = len(ts)
     global exp_texts, exp_labels
     print(f"--- [gpt3] testing {len(ts)} examples ---")
     # construct texts and ground truths
     # load examples if choose==True
-    examples = load_examples(dataset="jointslu",
+    examples = load_examples(dataset=dataset,
                              labels_version=labels_version)
     if select or select == "True":
         # For each sentence, find an example by similarity
@@ -125,5 +125,5 @@ def gpt3jointslu(num, prompt, model_name, testing_file, path, select, labels_ver
             "prediction": response,
             "std_gt": std_gts[i]
         }
-        append_to_json(file_path=path, new_data=result)
+        append_to_json(file_path=output_path, new_data=result)
         time.sleep(3.5)
