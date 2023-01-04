@@ -5,7 +5,7 @@ from typing import List
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 
-from data.data_processing import generate_gpt3_examples_file, data_path_by_lv, get_samples
+from data.data_processing import generate_gpt3_examples_file, get_samples
 from evaluation.evaluation_utils import get_std_gt
 
 PROMPT_1 = "Extract the important information from this text and show them using key-value pairs.\n"
@@ -38,7 +38,6 @@ def load_examples(dataset, labels_version):
     path = folder_name + file_name
     if not os.path.exists(path):
         generate_gpt3_examples_file(dataset=dataset,
-                                    datatype="train",
                                     labels_version=labels_version,
                                     in_file=path)
     file = open(path)

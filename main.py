@@ -4,30 +4,25 @@ from data.data_processing import check_training_data
 
 from gpt3.gpt3 import gpt3jointslu
 from evaluation.evaluation import evaluate_model, evaluate_acc_f1
-from util import read_jointslu_labels, get_gpt3_params, get3output_paths, get_output_path
-
-
-def run_models(num, parsing_v, pretrain_v, gpt3_v, labels_version):
-    """run all three models with defined model_version and store the results in ***_output.json"""
-    # construct training data and store them into training_data file
-    pass
+from model_run import run_gpt3_model, run_parsing_model, run_pretrain_model
+from util import get_output_path
 
 
 def test_model(model_name, num, model_version, dataset, labels_version):
-    print("=============[ run model testing ]==============")
+    print("==============[ run model testing ]==============")
     print(f"1. {model_name} model-v{model_version}, lv{labels_version}")
     output_file = get_output_path(model_name=model_name,
                                   dataset=dataset,
                                   model_version=model_version)
-    print(f"output file >> {output_file}")
+    print(f"result will be stored in >> {output_file}")
     # check if training file is available
     train_fp, test_fp, val_fp = check_training_data(dataset, labels_version)
     if train_fp is None or test_fp is None or val_fp is None:
         print("data files are missing")
         return
     print("2. got data paths")
-    # todo: check all labels files. labels.csv(complicated and simplified)
-    #  label.json for pre-train and parsing, if not exist, then create
+    # todo: should labels files be checked here? because labels and training data
+    #  are all determined by model_version, dataset and labels_version information
     # run model with name
     if model_name == "gpt3":
         print("3. run gpt3 model with testing data file")
@@ -38,32 +33,17 @@ def test_model(model_name, num, model_version, dataset, labels_version):
                        testing_file=test_fp,
                        output_file=output_file)
     if model_name == "parsing":
-        run_parsing_model(num,
-                          model_version,
-                          output_file,
-                          labels_version)
-
-
-def run_gpt3_model(dataset, num, model_version, labels_version, testing_file, output_file):
-    """run num tests of gpt3 model given model_version and labels_version"""
-    prompt, model_name, select = get_gpt3_params(model_version)
-    if prompt is None:
-        print(f"model v{model_version} not avaliable, run gpt3 model failed")
-        return
-    gpt3jointslu(dataset=dataset,
-                 num=num,
-                 prompt=prompt,
-                 model_name=model_name,
-                 testing_file=testing_file,
-                 output_path=output_file,
-                 select=select,
-                 labels_version=labels_version)
-
-
-def run_parsing_model(num, model_version, output_file, labels_version):
-    """"""
-    # get parsing model parameters
-    pass
+        run_parsing_model(dataset=dataset,
+                          num=num,
+                          model_version=model_version,
+                          labels_version=labels_version,
+                          testing_file=test_fp,
+                          output_file=output_file)
+    if model_name == "pre-train":
+        run_pretrain_model(dataset=dataset,
+                           model_version=model_version,
+                           labels_version=labels_version,
+                           output_file=output_file)
 
 
 def evaluate_all_labels():
@@ -111,4 +91,8 @@ def acc_f1_all_labels():
 
 if __name__ == '__main__':
     # test gpt3 pipeline with 10 examples
-    test_model("gpt3", 10, 1, "01")
+    test_model(model_name="parsing",
+               num=5,
+               model_version=0,
+               dataset="jointslu",
+               labels_version="01")

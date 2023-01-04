@@ -2,13 +2,13 @@ from random import randint
 from typing import List
 
 from gpt3.gpt3_util import get_example_by_sim, load_examples, \
-    construct_oneshot_example, construct_oneshot_prompt, get_samples_gpt3, \
+    construct_oneshot_example, construct_oneshot_prompt, \
     construct_zeroshot_prompt, get_labels_ts_stdgts
 import openai
 import os
 import time
 
-from util import append_to_json
+from util import append_to_json, get_gpt3_params
 
 API_KEY = os.environ.get('OPENAI_API_KEY')
 if not API_KEY:
@@ -88,27 +88,34 @@ def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine):
     return response["choices"][0]["text"]
 
 
-def gpt3jointslu(dataset, num, prompt, model_name, testing_file, output_path, select, labels_version):
+def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_version):
     """num: number of input texts to be tested,
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
+    # load parameter
+    prompt, model_name, select = get_gpt3_params(model_version)
+    select = True if select == "True" else False
+    if prompt is None:
+        print(f"model v{model_version} not avaliable, run gpt3 model failed")
+        return
+    print(f"    [gpt3jointslu] v{model_version} prompt={prompt}, model_name={model_name}, select={select}")
     # load test examples
     labels, ts, std_gts = get_labels_ts_stdgts(testing_file=testing_file,
                                                num=num)
     num_examples = len(ts)
     global exp_texts, exp_labels
-    print(f"--- [gpt3] testing {len(ts)} examples ---")
+    print(f"    [gpt3jointslu] testing {len(ts)} examples ---")
     # construct texts and ground truths
     # load examples if choose==True
     examples = load_examples(dataset=dataset,
                              labels_version=labels_version)
     if select or select == "True":
         # For each sentence, find an example by similarity
-        print("%% choose example by similarity")
+        print("    [gpt3jointslu]%%choose example by similarity")
         examples = get_example_by_sim(ts, examples)
         exp_texts, exp_gts = construct_oneshot_example(examples)
     else:
-        print("%% choose random examples")
+        print("    [gpt3jointslu]%%choose random examples")
         # choose random example for each text
         # todo: here should pick from selected examples or from all training data?
         idxs = [randint(0, len(examples) - 1) for _ in range(len(ts))]

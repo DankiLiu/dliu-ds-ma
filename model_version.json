@@ -5,6 +5,7 @@
       "prompt": "PROMPT_3",
       "model": "text-davinci-002",
       "select": "True",
+      "shuffle": "False",
       "comment": "prompt: prompt name, every prompt has a way to generate examples and inputs to gpt3"
     },
     {
@@ -12,6 +13,7 @@
       "prompt": "ROBOT_TRANSLATOR",
       "model": "text-davinci-003",
       "select": "True",
+      "shuffle": "False",
       "comment": ""
     },
     {
@@ -21,6 +23,18 @@
     {
       "version": 0,
       "shuffle": "true"
+    }
+  ],
+  "pre-train": [
+    {
+      "version": 0,
+      "lr": 2.9908676527677725e-05,
+      "max_epoch": 3,
+      "batch_size": 3982,
+      "tokenizer": "bert-base-uncased",
+      "do_lower_case": "True",
+      "sep_token": "EOS",
+      "cls_token": "BOS"
     }
   ]
 }

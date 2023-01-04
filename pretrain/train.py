@@ -11,9 +11,8 @@ from pretrain.jointslu_data_module import JointsluDataModule
 from evaluation.evaluation_utils import get_std_gt
 from pathlib import Path
 
-
 # Update labels again if training dataset is generated
-from util import append_to_json
+from util import append_to_json, get_pretrain_params
 
 
 def update_label():
@@ -30,12 +29,17 @@ def define_tokenizer():
     return tokenizer
 
 
+def select_data_module(dataset, labels_version, tokenizer):
+    """select different data module, for now jointslu is the only dataset"""
+    return JointsluDataModule(dataset=dataset,
+                              labels_version=labels_version,
+                              tokenizer=tokenizer)
+
+
 def train(model_version, dataset, labels_version):
     labels_dict = get_labels_dict(dataset, labels_version)
     tokenizer = define_tokenizer()
-    data_module = JointsluDataModule(dataset=dataset,
-                                     labels_version=labels_version,
-                                     tokenizer=tokenizer)
+    data_module = select_data_module(dataset, labels_version, tokenizer)
     model = LitBertTokenClassification(labels_dict=labels_dict,
                                        tokenizer=tokenizer,
                                        learning_rate=2.9908676527677725e-05)
@@ -66,32 +70,61 @@ def auto_lr_bz_train(dataset, labels_version):
     trainer.fit(model, datamodule=data_module)
 
 
-def load_from_checkpoint(tokenizer, model,
-                         path="/pretrain/auto_sim/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt"):
-
-    current_path =str(Path().absolute())
-    # path = "/pretrain/auto_sim/bert_jointslu/version_0/checkpoints/epoch=2-step=11946.ckpt"
-    chk_path = Path(current_path + path)
+def load_from_checkpoint(tokenizer, model, ckpt_path):
+    current_path = str(Path().absolute())
+    chk_path = Path(current_path + ckpt_path)
     # print("check point path: ", chk_path)
     trained_model = model.load_from_checkpoint(chk_path, tokenizer=tokenizer)
     return trained_model
 
 
-def predict(batch_size):
+def pretrain_testing(dataset, model_version, labels_version, output_file):
+    # todo: does pretrain model have to predict all examples from datamodule?
+    # get pre-train model parameters
+    lr, max_epoch, batch_size = get_pretrain_params(model_version)
+    print(f"    [pretrain_testing] v{model_version} lr={lr}, batch_size={batch_size}, max_epoch={max_epoch}")
+    # get prediction results
+    results = pretrain_predict(dataset, model_version, labels_version, lr, batch_size)
+    # post processing and store output in file
+    post_processing(results, output_file)
+
+
+def pretrain_predict(dataset, model_version, labels_version, lr, batch_size):
     tokenizer = define_tokenizer()
-    model = LitBertTokenClassification(tokenizer=tokenizer, batch_size=batch_size)
-    data_module = JointsluDataModule(tokenizer=tokenizer)
-    # get trained model
-    trained_model = load_from_checkpoint(tokenizer, model)
+    labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    model = LitBertTokenClassification(tokenizer=tokenizer,
+                                       labels_dict=labels_dict,
+                                       learning_rate=lr,
+                                       batch_size=batch_size)
+    # select data module
+    data_module = select_data_module(dataset, labels_version, tokenizer)
+    # construct path with model_version and labels_version
+    log_folder = "v" + str(model_version)
+    name = dataset + "_lv" + str(labels_version)
+    model_path = log_folder + "/" + name
+    # find .ckpt file in folder
+    ckpt_files = []
+    ckpt_index = 0
+    import os
+    for root, dirs, files in os.walk(model_path):
+        for file in files:
+            if file.endswith('.ckpt'):
+                ckpt_files.append(os.path.join(root, model_path))
+    # todo: if more than one ckpt file available, ask which one
+    if ckpt_files is None:
+        print("no available trained pre-trained model, prediction failed")
+        return
+    elif len(ckpt_files) > 1:
+        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}")
+    print(f"    [pretrain_testing] load model from {ckpt_files[ckpt_index]}")
+    trained_model = load_from_checkpoint(tokenizer, model, ckpt_files[ckpt_index])
     trainer = Trainer()
     results = trainer.predict(model=trained_model, datamodule=data_module)
-    print("results shape ", results)
-    print("results=============", results)
-    post_processing(results)
+    print("    [pretrain_testing] results shape is ", results)
     return results
 
 
-def post_processing(results):
+def post_processing(results, output_file):
     """data is results from finetuned bert model, generate std_gt and std_prediction and store in file."""
     # results is a list of result:
     #            result = {
@@ -99,8 +132,6 @@ def post_processing(results):
     #            "gt": gt,
     #            "prediction": prediction}
     post_precessed = []
-    from datetime import date
-    timestamp = str(date.today())
     for nth_prediction in results:
         for r in nth_prediction:
             text = r["text"]
@@ -109,17 +140,14 @@ def post_processing(results):
             std_gt = get_std_gt(text, gt)
             std_output = get_std_gt(text, prediction)
             new_dict = {
-                "timestamp": timestamp,
+                "num": nth_prediction,
                 "text": text,
                 "gt": gt,
                 "prediction": prediction,
                 "std_output": std_output,
                 "std_gt": std_gt
             }
-            print(new_dict, '\n')
             post_precessed.append(new_dict)
-    append_to_json(file_path="../data/jointslu/pre-train/pre-train_outputs/pre-train_output.json", data=post_precessed)
+    append_to_json(file_path=output_file, new_data=post_precessed)
+    print(f"{len(post_precessed)} results appended to parsing_output.json")
 
-
-if __name__ == '__main__':
-    predict(batch_size=1)
