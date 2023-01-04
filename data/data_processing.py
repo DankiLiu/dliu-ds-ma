@@ -127,6 +127,7 @@ def get_labels_dict(dataset, labels_version):
         f = open(file_path)
         labels_dict = json.load(f)
         f.close()
+        print("[get+labels_dict] - ", labels_dict)
         return labels_dict
     else:
         # if for labels_v, labels file does not exist, create and return
@@ -145,7 +146,23 @@ def get_labels_dict(dataset, labels_version):
         with open(file_path, 'w') as infile:
             json.dump(labels_dictionary, infile, indent=4)
             infile.close()
+
+        print("[get+labels_dict] - new created - ", labels_dictionary)
         return labels_dictionary
+
+
+def get_ori_sim_dict(dataset, labels_version):
+    """return ori_sim labels in dictionary form, one sim label matches to one ori label"""
+    file_name = "labels" + labels_version + ".csv"
+    ori_sim_labels_path = "data/" + dataset + "/labels/" + file_name
+    if os.path.exists(ori_sim_labels_path):
+        df = pd.read_csv(ori_sim_labels_path)
+        ori, sim = df['original label'].tolist(), df['simplified label'].tolist()
+        ori_sim = dict(zip(ori, sim))
+        print(f"[ori_sim dict] {ori_sim}")
+        return ori_sim
+    else:
+        raise FileNotFoundError(ori_sim_labels_path, "dose not exist, can not proceed")
 
 
 def gpt3_from_bert_dataset():
@@ -192,37 +209,22 @@ def create_training_data(shuffle=False):
     f.close()
 
 
-def simp_label(ori, label_path):
-    """ return the matched simplified label give original label """
-    import pandas as pd
-    ori_labels, sim_labels = [], []
-    try:
-        df = pd.read_csv(label_path)
-        ori_labels, sim_labels = df['original label'].tolist(), df['simplified label'].tolist()
-    except KeyError or IndexingError:
-        print(f"dateframe reading error")
-    labels_dict = dict(zip(ori_labels, sim_labels))
-    try:
-        if labels_dict[ori]:
-            return labels_dict[ori]
-        else:
-            return "O"
-    except KeyError or IndexingError:
-        print(f"read {ori} from dict error")
-
-
-def get_labels_file_path(labels_version):
+def get_labels_file_path(dataset, labels_version):
+    """return path that stores original labels and simplified labels"""
     file_name = "labels" + labels_version + ".csv"
-    return "data/jointslu/labels/" + file_name
+    return "data/" + dataset + "/labels/" + file_name
 
 
-def get_simplified_labels(oris: List, labels_version):
+def get_simplified_labels(oris: List, ori_sim_dict):
     """ return a list of labels that matched from the original labels
     to simplified labels for one example"""
-    label_path = get_labels_file_path(labels_version)
     labels = []
-    for label in oris:
-        sim = simp_label(label, label_path)
+    for ori in oris:
+        sim = "O"
+        try:
+            sim = ori_sim_dict[ori]
+        except KeyError or IndexingError:
+            print(f"[get_simplified_labels]\nread {ori} from dict error")
         labels.append(sim)
     return labels
 
@@ -230,52 +232,48 @@ def get_simplified_labels(oris: List, labels_version):
 def check_training_data(dataset, labels_version):
     """check whether data files are ready and return the paths"""
     folder_path = "data/" + dataset + "/training_data/labels" + labels_version
-    print(f"lv{labels_version}: training data should be stored in {folder_path}")
+    print(f"[check_training_data]\nlv{labels_version}: training data should be stored in {folder_path}")
     train_p = folder_path + "/train.json"
     test_p = folder_path + "/test.json"
     val_p = folder_path + "/val.json"
     # if folder path exist and not empty, then the data exists and return True
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
-    if os.path.exists(train_p) and os.path.exists(test_p) and os.path.exists(val_p):
-        # todo: check existence of all files, if not exist, create
-        return train_p, test_p, val_p
-    else:
+    if not (os.path.exists(train_p) and os.path.exists(test_p) and os.path.exists(val_p)):
         # construct training data
         for data_type in ["train", "test", "val"]:
-            try:
-                construct_training_data(data_type=data_type,
-                                        labels_version=labels_version)
-            except FileNotFoundError:
-                print(f"fail to construct training data for {data_type}")
-                return None, None, None
-        return train_p, test_p, val_p
+            construct_training_data(dataset=dataset,
+                                    data_type=data_type,
+                                    labels_version=labels_version)
+    return train_p, test_p, val_p
 
 
-def construct_training_data(data_type, labels_version):
+def construct_training_data(dataset, data_type, labels_version):
     """change the annotated data for training pre-trained model to simplified labels"""
-    path = "data/jointslu/training_data/" + data_type + ".json"
-    new_path = "data/jointslu/training_data/labels" + labels_version + "/" \
+    path = "data/" + dataset + "/training_data/" + data_type + ".json"
+    print(f"[construct_training_data]\nconstructing {dataset}.{data_type} data from {path}")
+    new_path = "data/" + dataset + "/training_data/labels" + labels_version + "/" \
                + data_type + ".json"
     file = open(path, 'r')
     data = json.load(file)
-    new_data = construct_data(data, labels_version)
+    new_data = construct_data(data, dataset, labels_version)
     with open(new_path, 'w+') as f:
         json.dump(new_data, f, indent=4)
         f.close()
 
 
-def construct_data(data, labels_version):
+def construct_data(data, dataset, labels_version):
     """change the labels to simplified labels and add bos and eos to the label"""
     new_data = []
     i = 0
+    # get ori-sim labels dict
+    ori_sim_dict = get_ori_sim_dict(dataset=dataset, labels_version=labels_version)
     for ele in data:
         # labels list
         labels = ele["labels"].split(' ')
-        new_labels = get_simplified_labels(labels[1: len(labels) - 1], labels_version)
+        new_labels = get_simplified_labels(labels[1: len(labels) - 1], ori_sim_dict)
         new_labels.insert(0, '[CLS]')
         new_labels.append('[SEP]')
-        assert len(labels) == len(new_labels)
 
         new_data.append({
             'id': i,
@@ -289,10 +287,12 @@ def construct_data(data, labels_version):
 def generate_gpt3_examples_file(dataset, labels_version, in_file):
     """select an example for each label and store into file, number suggests the labels_version"""
     examples = []
-    label_dict = get_labels_dict(labels_version)
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
     labels = list(label_dict.keys())
     # open pre-train training data file
-    path = "data/" + dataset + "/gpt3/examples" + labels_version + ".json"
+    # todo: check whether training data exists, already checked???
+    path = "data/" + dataset + "/training_data/labels" + labels_version + "/train.json"
+    print(f"gpt3 {dataset}_lv{labels_version} example file does not exist, creating one from training data {path}")
     f = open(path, 'r')
     data = json.load(f)
     for idx, label in enumerate(labels):
@@ -311,7 +311,7 @@ def generate_gpt3_examples_file(dataset, labels_version, in_file):
             "example": example
         })
         print(f"example of {label} is\n{example}")
-    f_in = open(in_file, 'w')
+    f_in = open(in_file, 'w+')
     json.dump(examples, f_in, indent=4)
     f_in.close()
     f.close()
