@@ -1,4 +1,4 @@
-fromal label,simplified label
+original label,simplified label
 "I-depart_date.today_relative",depart date
 "B-arrive_time.start_time",arrive time
 "atis_distance",atis distance
