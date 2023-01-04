@@ -1,5 +1,6 @@
 import os
 import json
+from typing import List
 
 
 def read_jointslu_labels():
@@ -28,7 +29,10 @@ def append_to_json(file_path, new_data):
     else:
         print(f"{file_path} file is empty")
     f.close()
-    data.append(new_data)
+    if isinstance(new_data, List):
+        data = [*data, *new_data]
+    else:
+        data.append(new_data)
     f = open(file_path, 'w')
     json.dump(data, f, indent=2)
     f.close()
@@ -69,14 +73,23 @@ def get_parsing_params(version):
     parsing_data = json.load(f)["parsing"]
     for item in parsing_data:
         if item["version"] == version:
-            return item["dataset"], item["shuffle"]
+            return item["shuffle"]
     return None
 
 
-def get3output_paths(parsing_v, pretrain_v, gpt3_v):
-    return get_output_path("parsing", parsing_v), \
-           get_output_path("pre-train", pretrain_v), \
-           get_output_path("gpt3", gpt3_v)
+def get_pretrain_params(version):
+    f = open("model_version.json")
+    parsing_data = json.load(f)["pre-train"]
+    for item in parsing_data:
+        if item["version"] == version:
+            return item["lr"], item["max_epoch"], item["batch_size"]
+    return None, None, None
+
+
+def get3output_paths(dataset, parsing_v, pretrain_v, gpt3_v):
+    return get_output_path("parsing", dataset, parsing_v), \
+           get_output_path("pre-train", dataset, pretrain_v), \
+           get_output_path("gpt3", dataset, gpt3_v)
 
 
 def get_output_path(model_name, dataset, model_version):

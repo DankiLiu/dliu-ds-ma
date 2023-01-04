@@ -17,11 +17,6 @@ import json
 from parse.parsing_util import get_labels_ts_phrases
 from util import append_to_json, get_parsing_params
 
-f = open("data/jointslu/pre-train/labels.json")
-data = json.load(f)
-LABELS = list(data.keys())
-f.close()
-
 
 def plotting(labels=None, acc: List = None, f1: List = None):
     df = pd.read_csv("../data/jointslu/parsing/scores.csv")
@@ -41,6 +36,10 @@ def plotting(labels=None, acc: List = None, f1: List = None):
 
 def parse_testing(testing_file, num, model_version, dataset, output_file, labels_version):
     do_shuffle = get_parsing_params(model_version)
+    if not do_shuffle:
+        print("model does not has info to parameter [shuffle]")
+    do_shuffle = True if do_shuffle == "True" else False
+    print(f"    [parsing testing] get v{model_version} parameter, shuffle={do_shuffle}")
     parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
 
 
@@ -50,17 +49,17 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
     assert len(utexts) == len(ulabels) == len(parsed_phrases) == num
     # load bert for similarity
     sbert = sbert_model()
+    # get labels by labels_version
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    LABELS = list(label_dict.keys())
     for n in range(num):
-        # find label for each phrase with similarity
-        # todo: load simplied labels by labels_version
-        labels_dict = get_labels_dict(dataset=dataset,
-                                      labels_version=labels_version)
-        cosine_scores = cos_sim_per_example(parsed_phrases[n], labels_dict.keys(), sbert)
+        # load simplified labels
+        print(f"{n}th parsed phrases is {parsed_phrases[n]}")
+        cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
         prediction = [LABELS[idx] for idx in label_idxs]
         std_output = get_std_output_parsing(parsed_phrases[n], prediction)
         std_gt = get_std_gt(utexts[n], ulabels[n])
-        # todo: construct ground truth
         result = {
             "num": n,
             "text": utexts[n],
@@ -72,9 +71,8 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
         }
         print(f"result for {n}th example ", result)
         results.append(result)
-    # todo: use modified append_to_json file
     append_to_json(file_path=output_file, new_data=results)
-    print(f"{len(results)} results appended to parsing_output.json")
+    print(f"    [parsing] {len(results)} results appended to parsing_output.json")
 
 
 def evaluation(num=1, shuffle=True, pos=True, ner=True):

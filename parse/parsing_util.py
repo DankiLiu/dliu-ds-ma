@@ -1,6 +1,5 @@
 import requests
 from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPParser, CoreNLPServer
-import util
 from data.data_processing import get_samples
 
 
@@ -8,8 +7,11 @@ def corenlp_server_start(path_to_jar=None,
                          path_to_models_jar=None):
     """start corenlp server"""
     # Only in testing phase
-    path_to_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0.jar'
-    path_to_models_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0-models.jar'
+    # path_to_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0.jar'
+    # path_to_models_jar = 'C:/Users/liuda/Documents/Files/StudiumInDtl/Masterarbeit/corenlp/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0-models.jar'
+    path_to_jar = '/home/danki/Studium/Thesis/stanford_parser/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0.jar'
+    path_to_models_jar = '/home/danki/Studium/Thesis/stanford_parser/stanford-corenlp-4.5.0/stanford-corenlp-4.5.0-models.jar'
+
     if not path_to_jar:
         path_to_jar = input("input the path to stanford-corenlp-4.5.0.jar/n")
     if not path_to_models_jar:
@@ -131,13 +133,14 @@ def parse_by_num(testing_file, num, utexts, ulabels, parsed_phrases, do_shuffle)
                                 model_name="parsing",
                                 num=num,
                                 do_shuffle=do_shuffle)
+    print(f"     [parse_by_num] num of texts {len(texts)}, texts and labels are lists of words/tokens")
     dep_result, _, ner_result = parse_samples(texts)
     for ith_exp in range(len(texts)):
         num_evaluated = len(utexts)
         if num == num_evaluated:
             # if enough number of parsed samples, return, otherwise sample
             return utexts, ulabels, parsed_phrases
-        assert len(texts[ith_exp].split(' ')) == len(labels[ith_exp])
+        assert len(texts[ith_exp]) == len(labels[ith_exp])
         dp_graph = dep_result[ith_exp]
         ner_labels = ner_result[ith_exp]
         # compare dependency graph length with labels length
@@ -163,7 +166,7 @@ def parse_samples(text):
         corenlp_server_start()
     dep_result, pos_result, ner_result = [], [], []
     for sentence in text:
-        pos, ner, dp = corenlp_parse(sentence)
+        pos, ner, dp = corenlp_parse(' '.join(sentence))
         dep_result.append(dp)
         pos_result.append(pos)
         ner_result.append(ner)
