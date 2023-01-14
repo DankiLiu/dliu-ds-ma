@@ -1,10 +1,9 @@
 import json
 
-from data.data_processing import check_training_data
-
-from gpt3.gpt3 import gpt3jointslu
+from data.data_processing import check_training_data, check_labels_atis
 from evaluation.evaluation import evaluate_model, evaluate_acc_f1
 from model_run import run_gpt3_model, run_parsing_model, run_pretrain_model
+from pretrain.train import train
 from util import get_output_path
 
 
@@ -20,6 +19,9 @@ def test_model(model_name, num, model_version, dataset, labels_version):
     if train_fp is None or test_fp is None or val_fp is None:
         print("data files are missing")
         return
+    if dataset == "jointslu":
+        # for jointslu dataset, check the labels and intents files
+        check_labels_atis(labels_version)
     print("2. got data paths")
     # todo: should labels files be checked here? because labels and training data
     #  are all determined by model_version, dataset and labels_version information
@@ -90,9 +92,5 @@ def acc_f1_all_labels():
 
 
 if __name__ == '__main__':
-    # test gpt3 pipeline with 10 examples
-    test_model(model_name="parsing",
-               num=5,
-               model_version=0,
-               dataset="jointslu",
-               labels_version="01")
+    # train pretrained model with new label set
+    test_model("gpt3", 5, 1, "jointslu", "01")
