@@ -1,0 +1,13 @@
+{
+    "meal": 0,
+    "flight information": 1,
+    "cost": 2,
+    "quantity": 3,
+    "abbreviation": 4,
+    "distance": 5,
+    "city": 6,
+    "ground service": 7,
+    "restriction": 8,
+    "airport": 9,
+    "capacity": 10
+}

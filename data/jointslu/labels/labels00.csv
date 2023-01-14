@@ -1,23 +1,18 @@
-original label,simplified label
+ori,sim
 "I-depart_date.today_relative",depart date
 "B-arrive_time.start_time",arrive time
-"atis_distance",atis distance
 "O",O
 "B-stoploc.airport_name",stop location
 "B-depart_date.today_relative",depart date
 "I-restriction_code",restriction code
-"atis_ground_fare",ground fare
 "B-arrive_date.day_number",arrive date
 "I-arrive_time.end_time",arrive time end
 "B-depart_time.period_mod",depart time
 "B-connect",connect
-"atis_ground_service",ground service
-"atis_flight_time",flight time
 "B-days_code",days code
 "I-fromloc.city_name",from city
 "B-arrive_time.end_time",arrive time end
 "B-arrive_date.day_name",arrive date
-"atis_airfare",atis airfare
 "B-meal_description",meal description
 "I-arrive_date.day_number",arrive date
 "B-or",alternative
@@ -25,9 +20,7 @@ original label,simplified label
 "B-airline_code",airline code
 "B-fromloc.state_name",from location
 "B-depart_time.time_relative",depart time
-"atis_airport",atis airport
 "I-depart_time.time",depart time
-"atis_city",in city
 "B-depart_date.year",depart date
 "B-time",at time
 "B-month_name",month
@@ -36,17 +29,14 @@ original label,simplified label
 "B-arrive_time.period_of_day",arrive time
 "I-toloc.state_name",to state
 "B-toloc.country_name",to country
-"atis_flight_no",flight number
 "B-flight_days",flight days
 "I-return_date.day_number",return date
-"atis_quantity",atis quantity
 "B-day_name",day name
 "B-depart_date.day_number",depart date
 "B-meal",meal
 "B-airport_code",airport code
 "B-toloc.state_code",to state code
 "I-airport_name",airport name
-"atis_cheapest",atis cheapest
 "I-airline_name",airline name
 "B-period_of_day",period of day
 "B-today_relative",relative to today
@@ -58,7 +48,6 @@ original label,simplified label
 "I-city_name",in city
 "B-arrive_time.time_relative",arrive time
 "B-economy",economy
-"atis_ground_service#atis_ground_fare",ground service
 "B-return_time.period_of_day",return time
 "B-fare_amount",fare amount
 "B-state_name",state name
@@ -67,32 +56,25 @@ original label,simplified label
 "B-class_type",class type
 "I-class_type",class type
 "I-meal_code",meal code
-"atis_airline#atis_flight_no",flight number
 "B-flight_time",flight time
 "B-depart_date.month_name",depart date
 "B-depart_time.end_time",depart time
-"atis_restriction",atis restriction
 "B-toloc.airport_name",to airport
-"atis_aircraft",atis aircraft
 "B-airport_name",airport name
 "B-toloc.state_name",to state
 "B-fromloc.airport_name",from location
 "B-mod",superlative
 "I-flight_mod",superlative
 "B-fromloc.state_code",from state
-"atis_aircraft#atis_flight#atis_flight_no",atis aircraft
 "I-economy",economy
 "B-state_code",state code
-"atis_meal",atis meal
 "B-fromloc.city_name",from city
 "B-flight_stop",flight stop
 "I-transport_type",transport type
 "I-depart_time.period_of_day",depart time
 "I-depart_date.day_number",depart date
-"atis_airfare#atis_flight_time",atis aircraft
 "B-stoploc.city_name",stop city
 "I-toloc.airport_name",to airport
-"atis_flight",atis flight
 "B-depart_date.day_name",depart date
 "B-flight_number",flight number
 "B-depart_time.start_time",depart time
@@ -110,9 +92,7 @@ original label,simplified label
 "I-arrive_time.period_of_day",arrive time
 "B-airline_name",airline name
 "B-arrive_time.period_mod",arrive time
-"atis_flight#atis_airfare",atis flight
 "I-cost_relative",relative cost
-"atis_capacity",atis capacity
 "B-depart_time.period_of_day",depart time
 "B-cost_relative",relative cost
 "I-toloc.city_name",to city
@@ -131,9 +111,7 @@ original label,simplified label
 "B-time_relative",relative time
 "B-depart_date.date_relative",depart time
 "B-round_trip",round trip
-"atis_abbreviation",atis abbreviation
 "I-arrive_time.time",arrive time
 "I-today_relative",relative to today
 "B-transport_type",transport type
 "B-return_time.period_mod",return time
-"atis_airline",atis airline
