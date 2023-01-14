@@ -64,8 +64,8 @@ def get_gpt3_params(version):
     gpt3_data = json.load(f)["gpt3"]
     for item in gpt3_data:
         if item["version"] == version:
-            return item["prompt"], item["model"], item["select"]
-    return None, None, None
+            return item["w_intent"], item["prompt"], item["model"], item["select"]
+    return None, None, None, None
 
 
 def get_parsing_params(version):

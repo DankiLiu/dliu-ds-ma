@@ -4,9 +4,91 @@ from typing import List
 
 import pandas as pd
 from pandas.core.indexing import IndexingError
-from scipy.ndimage import label
 
 import util
+
+"""@@@ this is the start of new data processing"""
+
+
+def iob2json_with_intent(train, test, val):
+    """process original iob data into json files,
+    input is a list of iob file path, in the order of train, test, val
+    json file has key id, intent, text, label, json files are stored in training_data"""
+    # get original data
+    f_train = open(train, 'r')
+    f_test = open(test, 'r')
+    f_val = open(val, 'r')
+    data_train = f_train.readlines()
+    data_test = f_test.readlines()
+    data_val = f_val.readlines()
+    train_list, test_list, val_list = [], [], []
+
+    # lines to dict
+    train_list = lines_to_dict(data_train)
+    test_list = lines_to_dict(data_test)
+    val_list = lines_to_dict(data_val)
+
+    # store to json file
+    train_out = open("data/jointslu/training_data/train.json", 'w+')
+    test_out = open("data/jointslu/training_data/test.json", 'w+')
+    val_out = open("data/jointslu/training_data/val.json", 'w+')
+    json.dump(train_list, train_out, indent=4)
+    json.dump(test_list, test_out, indent=4)
+    json.dump(val_list, val_out, indent=4)
+
+
+def lines_to_dict(lines):
+    json_list = []
+    for i, train_l in enumerate(lines):
+        line_split = train_l.split('\t')
+        text, label = line_split[0].strip().split(' '), line_split[1].strip().split(' ')
+        if len(text) == len(label):
+            intent = label[-1]
+            label[0] = "[CLS]"
+            label[-1] = "[SEP]"
+            json_list.append({
+                "id": i,
+                "intent": intent,
+                "text": text,
+                "labels": label
+            })
+    return json_list
+
+
+def check_labels_atis(labels_version):
+    """check existence of intent and label files for atis dataset given labels_version"""
+    folder = "data/jointslu/labels/"
+    intent_csv = folder + "intents" + labels_version + ".csv"
+    intent_json = folder + "intents" + labels_version + ".json"
+    labels_csv = folder + "labels" + labels_version + ".csv"
+    labels_json = folder + "labels" + labels_version + ".json"
+    if os.path.exists(intent_csv) and not os.path.exists(intent_json):
+        labels_csv_to_json(intent_csv)
+    if os.path.exists(labels_csv) and not os.path.exists(labels_json):
+        labels_csv_to_json(labels_csv)
+
+
+def traversal_intent(file_path):
+    """traversal the intents exist in file_path as store it as a column in a csv_file"""
+    f = open(file_path, 'r')
+    data = json.load(f)
+    intents = list(set([item["intent"] for item in data]))
+    print(f"found {len(intents)} intents: \n{intents}")
+    df = pd.DataFrame({"ori": intents})
+    df.to_csv('data/jointslu/labels/intents01.csv', index=False)
+
+
+def labels_csv_to_json(file_path):
+    """store simplified labels and intents as a dictionary to json file, each matches a index."""
+    # read from intent file
+    df = pd.read_csv(file_path)
+    sim_intents = list(set(df['sim'].tolist()))
+    intent_dict = dict(zip(sim_intents, range(len(sim_intents))))
+    f = open(file_path.split('.')[0] + '.json', 'w+')
+    json.dump(intent_dict, f, indent=4)
+
+
+"""@@@ this is the end of new data processing"""
 
 
 def read_jointslu_lines(file_path=None):
@@ -119,47 +201,39 @@ def set_cls_sep_tokens():
     outfile.close()
 
 
+def get_intents_dict(dataset, labels_version):
+    """return intents in dictionary form, one intent matches one indenx number"""
+    file_path = "data/" + dataset + "/labels/intents" + labels_version + ".json"
+    if os.path.exists(file_path):
+        f = open(file_path)
+        intents_dict = json.load(f)
+        f.close()
+        print("[get_labels_dict] - ", intents_dict)
+        return intents_dict
+    return None
+
+
 def get_labels_dict(dataset, labels_version):
     """return labels in dictionary form, one label matches to one index number"""
-    global labels_path, f
     file_path = "data/" + dataset + "/labels/labels" + labels_version + ".json"
     if os.path.exists(file_path):
         f = open(file_path)
         labels_dict = json.load(f)
         f.close()
-        print("[get+labels_dict] - ", labels_dict)
+        print("[get_labels_dict] - ", labels_dict)
         return labels_dict
-    else:
-        # if for labels_v, labels file does not exist, create and return
-        try:
-            labels_path = "data/jointslu/labels/labels" + labels_version + ".csv"
-            f = open(labels_path, 'r')
-        except FileNotFoundError:
-            print(f"{labels_path} not found, pls check again.")
-        # read second column without index and store them in sjon format
-        simplified_df = pd.read_csv(labels_path, usecols=[1])
-        simplified_list = simplified_df['simplified label'].tolist()
-        simplified_set = list(set(simplified_list))
-        print(simplified_list)
-        labels_dictionary = dict(zip(simplified_set, range(len(simplified_set))))
-        # store in file
-        with open(file_path, 'w') as infile:
-            json.dump(labels_dictionary, infile, indent=4)
-            infile.close()
-
-        print("[get+labels_dict] - new created - ", labels_dictionary)
-        return labels_dictionary
+    return None
 
 
-def get_ori_sim_dict(dataset, labels_version):
+def get_ori_sim_dict(dict_type, dataset, labels_version):
     """return ori_sim labels in dictionary form, one sim label matches to one ori label"""
-    file_name = "labels" + labels_version + ".csv"
+    print(f"getting {dict_type} ori-sim dict")
+    file_name = dict_type + labels_version + ".csv"
     ori_sim_labels_path = "data/" + dataset + "/labels/" + file_name
     if os.path.exists(ori_sim_labels_path):
         df = pd.read_csv(ori_sim_labels_path)
-        ori, sim = df['original label'].tolist(), df['simplified label'].tolist()
+        ori, sim = df['ori'].tolist(), df['sim'].tolist()
         ori_sim = dict(zip(ori, sim))
-        print(f"[ori_sim dict] {ori_sim}")
         return ori_sim
     else:
         raise FileNotFoundError(ori_sim_labels_path, "dose not exist, can not proceed")
@@ -230,7 +304,8 @@ def get_simplified_labels(oris: List, ori_sim_dict):
 
 
 def check_training_data(dataset, labels_version):
-    """check whether data files are ready and return the paths"""
+    """check whether data files are ready and return the paths,
+    if not, construct new data according to dataset and labels_version"""
     folder_path = "data/" + dataset + "/training_data/labels" + labels_version
     print(f"[check_training_data]\nlv{labels_version}: training data should be stored in {folder_path}")
     train_p = folder_path + "/train.json"
@@ -255,11 +330,35 @@ def construct_training_data(dataset, data_type, labels_version):
     new_path = "data/" + dataset + "/training_data/labels" + labels_version + "/" \
                + data_type + ".json"
     file = open(path, 'r')
-    data = json.load(file)
-    new_data = construct_data(data, dataset, labels_version)
+    ori_data = json.load(file)
+    # new_data = construct_data(data, dataset, labels_version)
+    new_data = simplify_labels_intent(ori_data, dataset, labels_version)
     with open(new_path, 'w+') as f:
         json.dump(new_data, f, indent=4)
         f.close()
+
+
+def simplify_labels_intent(data, dataset, labels_version):
+    """change all the labels in training data to defined simplified labels and intents,
+    each label version matches a intent version."""
+    # get ori-sim labels dict
+    labels_dict = get_ori_sim_dict(dict_type="labels", dataset=dataset, labels_version=labels_version)
+    intents_dict = get_ori_sim_dict(dict_type="intents", dataset=dataset, labels_version=labels_version)
+    simplified_data = []
+    for sample in data:
+        sample["intent"] = intents_dict[sample["intent"]] if sample["intent"] in intents_dict.keys() else "unknown"
+        sim_labels = []
+        for ori_label in sample["labels"]:
+            if ori_label == "[CLS]" or ori_label == "[SEP]":
+                sim_labels.append(ori_label)
+                continue
+            if ori_label in labels_dict.keys():
+                sim_labels.append(labels_dict[ori_label])
+            else:
+                sim_labels.append('O')
+        sample["labels"] = sim_labels
+        simplified_data.append(sample)
+    return simplified_data
 
 
 def construct_data(data, dataset, labels_version):
@@ -302,6 +401,7 @@ def generate_gpt3_examples_file(dataset, labels_version, in_file):
             if label in item["labels"]:
                 example = {
                     "id": idx,
+                    "intent": item["intent"],
                     "text": item["text"],
                     "labels": item["labels"]
                 }
@@ -331,13 +431,14 @@ def get_samples(file_path, model_name, num, do_shuffle):
     length = len(data) if num == 0 else num
     if do_shuffle:
         shuffle(data)
+    intent = [i["intent"] for i in data[0:length]]
+
     if model_name == "gpt3" or model_name == "parsing":
         # remove BOS and EOS
         text = [i["text"][1: len(i["text"]) - 1] for i in data[0:length]]
         labels = [i["labels"][1: len(i["text"]) - 1] for i in data[0:length]]
-        return text, labels
+        return text, labels, intent
     elif model_name == "pre-train":
         text = [i["text"] for i in data[0:length]]
         labels = [i["labels"] for i in data[0:length]]
-        return text, labels
-
+        return text, labels, intent

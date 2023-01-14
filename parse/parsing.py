@@ -2,7 +2,7 @@ from typing import List
 
 import pandas as pd
 
-from data.data_processing import get_labels_dict
+from data.data_processing import get_labels_dict, get_intents_dict
 from evaluation.evaluation_utils import get_std_gt, get_std_output_parsing
 
 from sentence_transformers import SentenceTransformer
@@ -11,7 +11,6 @@ import torch
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import json
 
 # same labels as in pre-train
 from parse.parsing_util import get_labels_ts_phrases
@@ -45,27 +44,44 @@ def parse_testing(testing_file, num, model_version, dataset, output_file, labels
 
 def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle):
     results = []
-    utexts, ulabels, parsed_phrases = get_labels_ts_phrases(testing_file=testing_file, num=num, do_shuffle=do_shuffle)
+    utexts, ulabels, uintents, parsed_phrases, intent_phrases = \
+        get_labels_ts_phrases(testing_file=testing_file, num=num, do_shuffle=do_shuffle)
     assert len(utexts) == len(ulabels) == len(parsed_phrases) == num
     # load bert for similarity
     sbert = sbert_model()
     # get labels by labels_version
     label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version)
     LABELS = list(label_dict.keys())
+    INTENT_LABELS = list(intent_dict.keys())
     for n in range(num):
         # load simplified labels
-        print(f"{n}th parsed phrases is {parsed_phrases[n]}")
         cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
+        cosine_intent_scores = cos_sim_per_example(intent_phrases[n], INTENT_LABELS, sbert)
+
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
         prediction = [LABELS[idx] for idx in label_idxs]
-        std_output = get_std_output_parsing(parsed_phrases[n], prediction)
-        std_gt = get_std_gt(utexts[n], ulabels[n])
+
+        intent_prediction = ""
+        if intent_phrases[n] is not None:
+            intent_num = len(intent_phrases[n])
+            max_intents_jdxs = [int(torch.argmax(cosine_intent_scores[n])) for n in range(intent_num)]
+            max_scores = []
+            for i in range(intent_num):
+                # append the max score each intent in to a list
+                max_scores.append(cosine_intent_scores[i][max_intents_jdxs[i]])
+            max_idx = int(torch.argmax(torch.Tensor(max_scores)))
+            intent_prediction = INTENT_LABELS[max_intents_jdxs[max_idx]]
+        std_output = get_std_output_parsing(parsed_phrases[n], prediction, intent_prediction)
+        std_gt = get_std_gt(utexts[n], ulabels[n], uintents[n])
         result = {
             "num": n,
             "text": utexts[n],
+            "intent_gt": uintents[n],
+            "intent_prediction": intent_prediction,
             "gt": ulabels[n],
-            "phrase": parsed_phrases[n],
             "prediction": prediction,
+            "phrase": parsed_phrases[n],
             "std_output": std_output,
             "std_gt": std_gt
         }

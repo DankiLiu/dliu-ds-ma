@@ -113,26 +113,27 @@ def get_labels_ts_phrases(testing_file, num, do_shuffle):
     testing_file: path to test.josn, determined by dataset and laebls_version,
     some phrase results can not be used, sample new ones util the num is reached
     """
-    utexts, ulabels, parsed_phrases = [], [], []
+    utexts, ulabels, uintents, parsed_phrases, intent_phrases = [], [], [], [], []
     while len(utexts) < num:
         parse_by_num(testing_file=testing_file,
                      num=num,
-                     utexts=utexts, ulabels=ulabels,
+                     utexts=utexts, ulabels=ulabels, uintents=uintents,
                      parsed_phrases=parsed_phrases,
+                     intent_phrases=intent_phrases,
                      do_shuffle=do_shuffle)
-    return utexts, ulabels, parsed_phrases
+    return utexts, ulabels, uintents, parsed_phrases, intent_phrases
 
 
-def parse_by_num(testing_file, num, utexts, ulabels, parsed_phrases, do_shuffle):
-    """add legal result to utexts, ulabels and parsed_phrases"""
+def parse_by_num(testing_file, num, utexts, ulabels, uintents, parsed_phrases, intent_phrases, do_shuffle):
+    """add legal result to utexts, ulabels, parsed_phrases, intent_phrases"""
     if len(utexts) != 0:
         # if already sampled but num not satisfied, randomly sample square num of the missing samples
         num = (num - len(utexts)) ** 2
         do_shuffle = True
-    texts, labels = get_samples(file_path=testing_file,
-                                model_name="parsing",
-                                num=num,
-                                do_shuffle=do_shuffle)
+    texts, labels, intents = get_samples(file_path=testing_file,
+                                         model_name="parsing",
+                                         num=num,
+                                         do_shuffle=do_shuffle)
     print(f"     [parse_by_num] num of texts {len(texts)}, texts and labels are lists of words/tokens")
     dep_result, _, ner_result = parse_samples(texts)
     for ith_exp in range(len(texts)):
@@ -153,10 +154,13 @@ def parse_by_num(testing_file, num, utexts, ulabels, parsed_phrases, do_shuffle)
         if address != len(labels[ith_exp]):
             print(f"{ith_exp}th example's length not match")
             continue
-        phrases = interpret_dep(dp_graph, ner_labels, with_ner=True)
+        phrases, intent_phrase = interpret_dep(dp_graph, ner_labels, with_ner=True)
+        assert len(phrases) == len(texts[ith_exp])
         parsed_phrases.append(phrases)
+        intent_phrases.append(intent_phrase)
         utexts.append(texts[ith_exp])
         ulabels.append(labels[ith_exp])
+        uintents.append(intents[ith_exp])
 
 
 def parse_samples(text):
@@ -198,16 +202,16 @@ def ground_truth(labels, dataset, labels_version):
 def interpret_dep(dependency_graph, ner_labels, with_ner=False):
     """return a list of phrases constructed from dependency graph"""
     phrases = []
+    intent_phrases = []
     address = 1
     # if current index has phrase, create a list of the words in the phrase
     # and store under the index key
-    matching_dict = {}
     while True:
         word_dict = dependency_graph.get_by_address(address)
         if word_dict['address'] is None:
             break
         phrase = ""
-        gt = ""
+        # gt = ""
         # skip this word or not
         if not pos_skip(word_dict):
             # check dependency type, dep is a dep_dict
@@ -220,12 +224,16 @@ def interpret_dep(dependency_graph, ner_labels, with_ner=False):
             idxs.append(address)
             idxs.sort()
             phrase = construct_phrase(dependency_graph, idxs)
-        if with_ner and phrase != "":
-            if ner_labels[address - 1][1] != "O":
-                phrase = phrase + ' ' + ner_labels[address - 1][1]
-        phrases.append(phrase)
+            if with_ner and phrase != "":
+                if ner_labels[address - 1][1] != "O":
+                    phrase = phrase + ' ' + ner_labels[address - 1][1]
+        if not is_intent(word_dict):
+            phrases.append(phrase)
+        elif is_intent(word_dict):
+            phrases.append("")
+            intent_phrases.append(phrase)
         address = address + 1
-    return phrases
+    return phrases, intent_phrases
 
 
 def construct_phrase(dependency_graph, idxs):
@@ -240,9 +248,17 @@ def pos_skip(word_dict):
     as VPB, otherwise False"""
     if len(word_dict["deps"]) == 0:
         return True
-    if word_dict["ctag"] == "VBP" or word_dict["ctag"] == "VB":
-        return True
+    # if word_dict["ctag"] == "VBP":
+        # return True
     # if word_dict["ctag"] == "VB" -> goal action
+    return False
+
+
+def is_intent(word_dict):
+    if len(word_dict["deps"]) == 0:
+        return False
+    if word_dict["ctag"] == "VB" or word_dict["ctag"] == "VBP":
+        return True
     return False
 
 
