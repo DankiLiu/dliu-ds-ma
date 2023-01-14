@@ -93,8 +93,9 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
     # load parameter
-    prompt, model_name, select = get_gpt3_params(model_version)
+    w_intent, prompt, model_name, select = get_gpt3_params(model_version)
     select = True if select == "True" else False
+    # w_intent = True if w_intent == "True" else False
     if prompt is None:
         print(f"model v{model_version} not avaliable, run gpt3 model failed")
         return
@@ -105,7 +106,6 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
     num_examples = len(ts)
     global exp_texts, exp_labels
     print(f"    [gpt3jointslu] testing {len(ts)} examples ---")
-    # construct texts and ground truths
     # load examples if choose==True
     examples = load_examples(dataset=dataset,
                              labels_version=labels_version)
@@ -132,5 +132,6 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
             "prediction": response,
             "std_gt": std_gts[i]
         }
+        print(f"{i}th result: {result}")
         append_to_json(file_path=output_path, new_data=result)
         time.sleep(3.5)
