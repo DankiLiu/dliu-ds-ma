@@ -1,14 +1,254 @@
 """
 evaluation functions for three model
 the format and output of models should be the same for different models and different datasets
+        result = {
+            "num": (int) index of the example,
+            "text": (List) a list of tokens (words) of user utterance,
+            "intent_gt": (str) a phrase represents intent ground truth,
+            "intent_prediction": (str) predicted intent,
+            "gt": (List) a list of labels for each token,
+            "prediction": (List) a list of predicted labels for each token,
+            "phrase": [parsing approach] (List) a list of phrases constructed from parsing method,
+            "std_output": (str) a string constructed from predictions into key-value pairs format,
+            "std_gt": (str) a string constructed from ground truth into key-value pairs format
+        }
+            '''
+        kv_pairs_dict[model_name] = {
+            "gt_kv_pairs": gt_kv_pairs,
+            "pd_kv_pairs": pd_kv_pairs
+        }
+    '''
 """
-import csv
+import csv, json
 import pandas as pd
-from evaluation.evaluation_utils import get_kv_pairs
+
+from data.data_processing import get_intents_labels_keys
+from evaluation.evaluation_utils import process_data_to_kv_pairs
+from evaluation.muc5 import MUC5
+from util import get_output_folder
+
+RESULTS_TYPES = ["equal", "under", "over", "mismatch", "mis", "spu", "non"]
+MATCHING_TYPES = ["correct", "partial", "incorrect", "missing", "spurious"]
+
+
+def model_evaluation(dataset, sample_num, bylabel, labels_version):
+    """evaluate three approaches with num examples and store the result in results folder
+    dataset: name of the dataset
+    sample_num: number of samples to be evaluated
+    bylabel: when true evaluate by label, otherwise false
+    num: num of examples for each label"""
+    # todo: some labels have very few occurrence, an option to evaluate all of the occurrence,
+    #  see the result first, would not be difficult to add
+    # load data (std_prediction and std_gt) from the most recent output files, raise exception if not enough examples
+    print("load data dict")
+    loaded_data_dict = load_data_from_latest(dataset, sample_num)
+    print("process data to kv pairs")
+    kv_pairs_dict = process_data_to_kv_pairs(loaded_data_dict)
+    # todo: evaluation by labels: two kinds of labels, intents and tok_labels
+    #   need to differentiate them? temp not to
+    if bylabel:
+        print("eval by label")
+        # intent and tok_labels
+        labels = get_intents_labels_keys(dataset, labels_version)
+        entries = evaluate_models_by_labels(kv_pairs_dict, labels)
+        # todo: store all entries to a csv file
+        #   columns of csv file:
+        #   "model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"
+        #   acc and f-scores will be calculated from these entries
+        # store metrics under folder dataset/bylabel/
+        folder = "evaluation/" + dataset + "/bylabel/"
+        # name file with labels_version, samples number and number per label
+        file_name = "lv" + str(labels_version) + "_s" + str(sample_num) + ".csv"
+        f = open(folder + file_name, 'w+')
+        header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+        df = pd.DataFrame(entries, columns=header)
+        df.to_csv(f)
+        # dict_writer = csv.DictWriter(f, header)
+        # dict_writer.writerows(entries)
+    else:
+        print("eval by model")
+        # calculate metrics of all labels in the sample
+        entries = evaluate_models(kv_pairs_dict)
+        folder = "evaluation/" + dataset + "/bymodel/"
+        # name file with labels_version, samples number and number per label
+        file_name = "lv" + str(labels_version) + "_s" + str(sample_num)  + ".csv"
+        f = open(folder + file_name, 'w+')
+        header = ["model_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+        dict_writer = csv.DictWriter(f, header)
+        dict_writer.writerows(entries)
+
+
+def evaluate_models(kv_pairs_dict):
+    """return metrics results of all three approaches evaluating all given label
+    :kv_pairs_dict: dictionary that stores model_name and its gt_kv_pairs and pd_kv_pairs
+    :labels: labels to be evaluated
+    :num: num of labels to be evaluated"""
+    entries = []
+    for model_name, kv_pairs in kv_pairs_dict.items():
+        # for each model, each example, check the matching type of each prediction
+        gt_kv_pairs = kv_pairs["gt_kv_pairs"]
+        pd_kv_pairs = kv_pairs["pd_kv_pairs"]
+
+        metrics = get_metrics_model(gt_kv_pairs, pd_kv_pairs)
+        metrics_dict = dict(zip(MATCHING_TYPES, metrics))
+        entry = {
+            "model_name": model_name,
+            "num": len(gt_kv_pairs)
+        }
+        entry.update(metrics_dict)
+        entries.append(entry)
+        print("[evaluate all samples] entries keys", entry.keys())
+    return entries
+
+
+def get_metrics_model(gt_kv_pairs, pd_kv_pairs):
+    """:return metrics, a list of metrics count the matching types of all samples in parsing or pretrain approach
+    parsing and pretrain contain only the defined labels"""
+    metrics = [0, 0, 0, 0, 0]
+    assert len(gt_kv_pairs) == len(pd_kv_pairs)
+    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs, pd_kv_pairs):
+        # (gt_kv_pair, pd_kv_pair) is a dict of label-phrase for one sample
+        example_matching_types = get_example_matching_type(gt_kv_pair, pd_kv_pair)
+        for matching_type_index in example_matching_types:
+            metrics[matching_type_index] += 1
+    return metrics
+
+
+def get_example_matching_type(gt_kv_pair, pd_kv_pair):
+    # get keys set of gt and prediction
+    keys = list(set(list(gt_kv_pair.keys()) + list(pd_kv_pair.keys())))
+    example_matching_types = []
+    for key in keys:
+        example_matching_types.append(get_matching_type(gt_kv_pair, pd_kv_pair, key))
+    return example_matching_types
+
+
+def evaluate_models_by_labels(kv_pairs_dict, labels):
+    """return metrics results of all three approaches evaluating all given label,
+    if occurrences of label is less than num, require new num
+    :kv_pairs_dict: dictionary that stores model_name and its gt_kv_pairs and pd_kv_pairs
+    :labels: labels to be evaluated
+    :num: num of labels to be evaluated"""
+    entries = []
+    # check label num occurrences
+    for model_name, kv_pairs in kv_pairs_dict.items():
+        print(f"[evaluate_models_by_labels] model_name: {model_name}")
+        for label in labels:
+            """
+            num_of_occ = label_num_occurrences(kv_pairs["gt_kv_pairs"], kv_pairs["pd_kv_pairs"], label)
+            print("[evaluate_models_by_labels] check number of occurrences")
+            if num_of_occ < num:
+                raise Exception(f"label {label} of {model_name} has only {num_of_occ} occurrences, "
+                                f"less than {num}, please given an other num for evaluation")
+            """
+            num_evaluated, sample_index, metrics = get_metrics_label(gt_kv_pairs=kv_pairs["gt_kv_pairs"],
+                                        pd_kv_pairs=kv_pairs["pd_kv_pairs"],
+                                        label_name=label)
+            print(f"[evaluate_models_by_labels] get metrics {metrics}")
+            metrics_dict = dict(zip(MATCHING_TYPES, metrics))
+            entry = {
+                "model_name": model_name,
+                "label_name": label,
+                "sample_num": sample_index,
+                "num": num_evaluated
+            }
+            entry.update(metrics_dict)
+            entries.append(entry)
+            print("entries keys", entry.keys())
+    return entries
+
+
+def get_metrics_label(gt_kv_pairs, pd_kv_pairs, label_name):
+    """:return metrics, a list of scores evaluated label, metrics counts the matching types of num of samples contains
+    the label_name"""
+    metrics = [0, 0, 0, 0, 0]
+    # if label exists in the example, then evaluate, util num is reached
+    num_evaluated = 0
+    sample_index = 0
+    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs, pd_kv_pairs):  # if evaluated samples number is less than num, continue to evaluate
+        if not contains_label(gt_kv_pair, pd_kv_pair, label_name):  # if label is not a key in the sample, skip
+            sample_index += 1
+            continue
+        else:  # evaluate if label exists
+            matching_type_index = get_matching_type(gt_kv_pair=gt_kv_pair,
+                                                    pd_kv_pair=pd_kv_pair,
+                                                    label=label_name)
+            metrics[matching_type_index] += 1
+            num_evaluated += 1
+            sample_index += 1
+    return num_evaluated, sample_index, metrics
+
+
+def load_data_from_latest(dataset, num):
+    model_names = ["parsing", "pre-train", "gpt3"]
+    latest_files = [find_latest_output_files(model, dataset) for model in model_names]
+    # check each file for num of examples, if less than given num, raise error
+    loaded = []
+    for i, model_name in enumerate(model_names):
+        # load data, if num of examples are less than num, raise error
+        with open(latest_files[i], 'r') as f:
+            data = json.load(f)
+            if len(data) < num:
+                raise Exception(f"number of examples in {model_names[i]} output file is {len(data)}, less than {num}")
+            else:
+                from random import shuffle
+                shuffle(data)
+                gt_key = "std_gt"
+                prediction_key = "prediction" if model_name == "gpt3" else "std_output"
+                random_loaded = {
+                    "std_gts": [item[gt_key] for item in data[:num]],
+                    "predictions": [item[prediction_key] for item in data[:num]]
+                }
+                loaded.append(random_loaded)
+        f.close()
+    return dict(zip(model_names, loaded))
+
+
+def find_latest_output_files(model, dataset):
+    """load the most recent output file from each approach"""
+    # todo: this is a temporary solution (how to find output file?)
+    output_folder = get_output_folder(model, dataset)
+    import glob
+    import os
+    list_of_files = glob.glob(output_folder + '*.json')
+    latest_file = max(list_of_files, key=os.path.getctime)
+    return latest_file
 
 
 # matching_type = enumerate(["equal", "under", "over", "mismatch", "mis", "spu"])
-def evaluate_acc_f1(model_name, label_name, is_loose):
+def acc_f1_by_label(model_name, label_name, is_loose, bylabel_path):
+    """calculate acc and f1 of all given models for all given models, the metrics path is given"""
+    # find entries in file that contain model_name, label_name, should be only one entry in one file
+    df = pd.read_csv(bylabel_path)
+    model_df = df.loc[(df["model_name"] == model_name) & (df["label_name"] == label_name)]
+    # read metrics from file
+    for index, row in model_df.iterrows():
+        num_of_example = row["num"]
+        cor, par, inc, mis, spu = row["cor"] / counter, row["par"] / counter, \
+                                  row["inc"] / counter, row["mis"] / counter, row["spu"] / counter
+        muc = MUC5(cor, par, inc, mis, spu)
+        acc, f1 = muc.acc, muc.f
+        accs.append(acc)
+        f1s.append(f1)
+    # calculate acc and f1 given is_loose
+    # return the acc and f1
+    # todo: what to do with the sample num and num column
+    pass
+
+
+def acc_f1_by_model(model_name, is_loose, bymodel_path):
+    """calculate acc and f1 of all given models for all given models, the metrics path is given"""
+    # find entries in file that contain model_name, should be only one entry in one file
+    df = pd.read_csv(bymodel_path)
+    model_df = df.loc[(df["model_name"] == model_name)]
+    # read metrics from file
+    # calculate acc and f1 given is_loose
+    # return the acc and f1
+    # todo: what to do with the num column
+    pass
+
+
+def evaluate_acc_f1(model_name, label_name, is_loose, file_path):
     """
     dataframe of scores.csv: model_name,label_name,key_counter,exp_counter,cor,par,inc,mis,spu
     :param model_name: str, model name ["gtp3", "pre-train", "parsing"]
@@ -16,12 +256,15 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
     :return: None, store result in the file
     """
     result = None
-    df = pd.read_csv("evaluation/jointslu_results/scores.csv")
-    # print(df.head())
-    model_df = df.loc[(df["model_name"] == model_name) & (df["label_name"] == label_name)]
-    print(model_df)
+    # read file from bylabel or bymodel file
+    df = pd.read_csv(file_path)
+    # separate into two functions, by label or by model
+    print(df.head())
     accs, f1s = [], []
     num = 0
+    # when by label, choose entries with model_name and label_name, should be only one row in a file
+    model_df = df.loc[(df["model_name"] == model_name) & (df["label_name"] == label_name)]
+    # calculate f1 and acc for each example
     for index, row in model_df.iterrows():
         print("num: ", num)
         print(f"{index} row : {row}")
@@ -30,11 +273,10 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
             # counter == 0 means there is no example available for given model_name and label_name
             # todo: counter == 0 example should not be stored in the first place, check evaluate_model function
             continue
-        cor, par, inc, mis, spu = row["cor"]/counter, row["par"]/counter, \
-                                  row["inc"]/counter, row["mis"]/counter, row["spu"]/counter
-        num = num + counter
-        acc, f1 = muc_loose_evaluation(cor, par, inc, mis, spu) if is_loose else \
-            muc_strict_evaluation(cor, par, inc, mis, spu)
+        cor, par, inc, mis, spu = row["cor"] / counter, row["par"] / counter, \
+                                  row["inc"] / counter, row["mis"] / counter, row["spu"] / counter
+        muc = MUC5(cor, par, inc, mis, spu)
+        acc, f1 = muc.acc, muc.f
         accs.append(acc)
         f1s.append(f1)
     if len(accs) == len(f1s) == 0:
@@ -43,7 +285,7 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
     try:
         print(f"acc [{model_name}, {label_name}]: ", accs)
         print(f"f1 [{model_name}, {label_name}]: ", f1s)
-        acc, f1 = sum(accs)/len(accs), sum(f1s)/len(f1s)
+        acc, f1 = sum(accs) / len(accs), sum(f1s) / len(f1s)
         # todo: if contains model_name, label_name, is_loose entry, then merge those entry
         result = [model_name, label_name, num, is_loose, acc, f1]
         print("result: ", result)
@@ -60,132 +302,16 @@ def evaluate_acc_f1(model_name, label_name, is_loose):
         print(f"no entry met [{model_name}, {label_name}]")
 
 
-def muc_loose_evaluation(cor, par, inc, mis, spu):
-    # count par as correct
-    cor = cor + par
-    acc = muc_accuracy(cor, 0, inc, mis, spu)
-    f1 = muc_f(cor, 0, inc, mis, spu)
-    return acc, f1
 
-
-def muc_strict_evaluation(cor, par, inc, mis, spu):
-    # separate partial with right classification
-    acc = muc_accuracy(cor, par, inc, mis, spu)
-    f1 = muc_f(cor, par, inc, mis, spu)
-    return acc, f1
-
-
-def muc_accuracy(cor, par, inc, mis, spu):
-    total = sum([cor, par, inc, mis, spu])
-    if total == 0:
-        return 0
-    return cor/total
-
-
-def muc_possible(cor, par, inc, mis, spu):
-    return cor + par + inc + mis
-
-
-def muc_actual(cor, par, inc, mis, spu):
-    return cor + par + inc + spu
-
-
-def muc_recall(cor, par, inc, mis, spu):
-    denominator = cor + (par * 0.5)
-    numerator = float(muc_actual(cor, par, inc, mis, spu))
-    if numerator == 0:
-        return 0
-    return denominator/numerator
-
-
-def muc_precision(cor, par, inc, mis, spu):
-    denominator = cor + (par * 0.5)
-    numerator = float(muc_possible(cor, par, inc, mis, spu))
-    if numerator == 0:
-        return 0
-    return denominator/numerator
-
-
-def muc_f(cor, par, inc, mis, spu, b=1.0):
-    recall = muc_recall(cor, par, inc, mis, spu)
-    precision = muc_precision(cor, par, inc, mis, spu)
-    denominator = (b * b + 1.0) * precision * recall
-    numerator = (b * b * precision) + recall
-    if numerator == 0:
-        return 0
-    return denominator/numerator
-
-
-def evaluate_model(model_name, num_exps, label_name=None):
-    kv_pairs = get_kv_pairs(num=num_exps, model=model_name)
-    # exp_counter counts how many examples are evaluated
-    # key_counter counts how many time is key=label_name evaluated
-    exp_counter = 0
-    key_counter = 0
-    correct, partial, incorrect, missing, spurious = 0, 0, 0, 0, 0
-    for pair in kv_pairs:
-        # if label_name is None, counter should be negative
-        matching_dict, counter = get_muc_metrics_dict(p_gt_pair=pair, label=label_name)
-        if counter > 0:
-            key_counter = key_counter + counter
-        exp_counter = exp_counter + 1
-        cor, par, inc, mis, spu = get_5_metrics(matching_dict)
-        correct, partial, incorrect, missing, spurious = \
-            correct + cor, partial + par, incorrect + inc, missing + mis, spurious + spu
-    # store result into file
-    label = label_name if label_name is not None else "ALL"
-    result = [model_name, label, key_counter, exp_counter, correct, partial, incorrect, missing, spurious]
-    file_path = "evaluation/jointslu_results/scores.csv"
-    with open(file_path, 'a') as f:
-        writer = csv.writer(f)
-        writer.writerow(result)
-        f.close()
-
-
-def contains_label(p_gt_pair, label):
-    """if label is defined, return whether given example contains label, if not defined, return truth"""
-    if label is None:
-        return True
-    else:
-        p_dict, gt_dict = p_gt_pair
-        keys = list(set(list(p_dict.keys()) + list(gt_dict.keys())))
-        return label in keys
-
-
-def get_5_metrics(matching_dict):
-    # count partial as right classification
-    cor = matching_dict["equal"]
-    par = matching_dict["under"] + matching_dict["over"]
-    inc = matching_dict["mismatch"]
-    mis = matching_dict["mis"]
-    spu = matching_dict["spu"]
-    return cor, par, inc, mis, spu
-
-
-def get_muc_metrics_dict(p_gt_pair, label=None):
-    """return a dictionary of comparison of each keys given an example,
-    return number of evaluated keys, return positive number if label is not None, else -1
-        "equal": both keys have same value,
-        "under": predicted key has part of gt value,
-        "over": predicted key has more than gt value,
-        "mismatch": predicted value does not match gt value,
-        "mis": no predictions but has gt,
-        "spu": no gt but has prediction
+def get_matching_type(gt_kv_pair, pd_kv_pair, label):
     """
-    matching_dict = {
-        "equal": 0,
-        "under": 0,
-        "over": 0,
-        "mismatch": 0,
-        "mis": 0,
-        "spu": 0
-    }
-    p_dict, gt_dict = p_gt_pair
-    keys = list(set(list(p_dict.keys()) + list(gt_dict.keys())))
-    # key_counter counts how many keys are given label
-    key_counter = 0 if label is not None else -1
-    # 1. merge all keys,
-    # if both contains key, compare the value, cor, par, inc
+    :return integer that represents a matching type of given example (given gt and pd kv pairs)
+    matching types: correct, partial, incorrect, missing, spurious = 0, 1, 2, 3, 4
+    comparison types: equal, under, over, mismatch, mis, spu, non = 0, 1, 2, 3, 4, 5, 6
+    """
+
+    keys = list(set(list(pd_kv_pair.keys()) + list(gt_kv_pair.keys())))  # merge keys, get a list of all keys
+    # if both contains key, compare the value -> cor, par, inc
     # if gt contains key, p not, mis
     # if p contains key, gt not, spu
     for key in keys:
@@ -193,43 +319,73 @@ def get_muc_metrics_dict(p_gt_pair, label=None):
             if key != label:
                 # for evaluating specific label, only exam when key == label
                 continue
-            else:
-                key_counter = key_counter + 1
-        matching_type = ""
-        if key in p_dict and key in gt_dict:
-            # if both prediction and gt have the label, compare two
+        result_of_comparison = 0
+        if key in pd_kv_pair.keys() and key in gt_kv_pair.keys():  # if both contain the label, compare
             # todo: function to compare p and gt values
-            gt_value, p_value = p_dict[key], gt_dict[key]
-            matching_type = get_matching_type(p_value=p_value, gt_value=gt_value)
-        elif key in gt_dict and not key in p_dict:
+            gt_value, p_value = gt_kv_pair[key], pd_kv_pair[key]
+            result_of_comparison = compare_values(gt_value=gt_value, p_value=p_value)
+        elif key in gt_kv_pair.keys() and not key in pd_kv_pair.keys():
             # if gt has the label but prediction does not, it is a miss
-            matching_type = "mis"
-        elif key in p_dict and not key in gt_dict:
+            result_of_comparison = RESULTS_TYPES.index("mis")
+        elif key in pd_kv_pair.keys() and not key in gt_kv_pair.keys():
             # if the label is predicted but it is not in gt, then it is a spu
-            matching_type = "spu"
-        if matching_type in matching_dict:
-            matching_dict[matching_type] = matching_dict[matching_type] + 1
-            # print(f"-- key <{key}> is <{matching_type}>, {matching_dict[matching_type]} + 1")
-    return matching_dict, key_counter
+            result_of_comparison = RESULTS_TYPES.index("spu")
+        # return matching_type index w.r.t comparison result
+        if result_of_comparison == 0:
+            return MATCHING_TYPES.index("correct")
+        elif result_of_comparison == 1 or result_of_comparison == 2:
+            return MATCHING_TYPES.index("partial")
+        elif result_of_comparison == 3:
+            return MATCHING_TYPES.index("incorrect")
+        elif result_of_comparison == 4:
+            return MATCHING_TYPES.index("missing")
+        elif result_of_comparison == 5:
+            return MATCHING_TYPES.index("spurious")
 
 
-def get_matching_type(p_value, gt_value):
-    """compare the values and return their matching type"""
-    # todo: what about empty value?
+def compare_values(p_value, gt_value):
+    """
+    compare the values and return their matching type
+    equal, under, over, mismatch, mis, spu, non = 0, 1, 2, 3, 4, 5, 6
+    """
     # todo: contain is not complete
     if p_value != '' and gt_value != '':
         if p_value == gt_value:
-            return "equal"
+            return RESULTS_TYPES.index("equal")
         if p_value in gt_value:
-            return "under"
+            return RESULTS_TYPES.index("under")
         if gt_value in p_value:
-            return "over"
+            return RESULTS_TYPES.index("over")
         if p_value != gt_value:
-            return "mismatch"
+            return RESULTS_TYPES.index("mismatch")
     else:
         if p_value == '' and gt_value != '':
-            return "mis"
+            return RESULTS_TYPES.index("mis")
         elif gt_value == '' and p_value != '':
-            return "spu"
+            return RESULTS_TYPES.index("spu")
         else:
-            return "non"
+            return RESULTS_TYPES.index("non")
+
+
+def find_largest_num():
+    """find the largest number of examples to evaluate"""
+    pass
+
+
+def label_num_occurrences(gt_kv_pairs, pd_kv_pairs, label):
+    """:return number of occurrences of the given model in gt and kv pairs"""
+    num = 0
+    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs, pd_kv_pairs):
+        if contains_label(gt_kv_pair, pd_kv_pair, label):
+            num += 1
+    return num
+
+
+def contains_label(gt_kv_pair, pd_kv_pair, label):
+    """if label is defined, return whether given example contains label, if not defined, return true"""
+    # todo: why return true if not defined? is that correct?
+    if label is None:
+        return True
+    else:
+        keys = list(set(list(gt_kv_pair.keys()) + list(pd_kv_pair.keys())))
+        return label in keys

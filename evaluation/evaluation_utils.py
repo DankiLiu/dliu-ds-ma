@@ -10,10 +10,10 @@ from util import read_keys_from_json
 import pandas as pd
 
 
-def get_std_gt(text: str, labels: List):
+def get_std_gt(text: List, labels: List, intent):
     """
     return standard ground truth of the given example, given input text and original labels (simplified).
-    :text: (str) A input text string
+    :text: (list) A input text string
     :labels: (list) A list of simplified labels
     :return standard ground truth of the given example
     """
@@ -22,8 +22,8 @@ def get_std_gt(text: str, labels: List):
     #   flights from pittsburgh to baltimore arriving between 4 and 5 pm
     # output_labels:
     #   from city: pittsburgh; to city: baltimore; arrive time: 4; arrive time end: 5 pm;
-    text = text.split(' ')
     if not len(text) == len(labels):
+        print(" [get_std_gt] length not match")
         return None
     d = {}
     for i in range(len(text)):
@@ -33,16 +33,17 @@ def get_std_gt(text: str, labels: List):
             d[labels[i]] = d[labels[i]] + ' ' + text[i]
         else:
             d[labels[i]] = text[i]
-    output_labels = ''
+    if intent is None:
+        intent = ""
+    output_labels = f"intent:{intent};"
     for k, v in d.items():
-        output_labels = output_labels + str(k) + ': ' + str(v) + '; '
+        output_labels = output_labels + str(k) + ':' + str(v) + ';'
     return output_labels
 
 
-def get_std_output_parsing(phrases: List, prediction: List):
+def get_std_output_parsing(phrases: List, prediction: List, intent):
     """
-    return standard ground truth of the given example for Parsing method,
-    given input text and original labels (simplified).
+    return standard output of the prediction.
     :phrases: (list) A list of phrases generated from Parsing
     :prediction: (list) A list of simplified labels predicted by Parsing
     :return standard ground truth of the given example
@@ -51,8 +52,10 @@ def get_std_output_parsing(phrases: List, prediction: List):
     output = []
     for i, p in enumerate(phrases):
         if p != "":
-            output.append(prediction[i] + ': ' + p)
-    output = '; '.join(output)
+            output.append(prediction[i] + ':' + p)
+    if intent is None:
+        intent = ""
+    output = f"intent:{intent};" + ';'.join(output)
     output = output.strip()
     return output
 
@@ -61,42 +64,30 @@ def std_gpt3_example(example):
     """return text: str and gt: list for an gpt3 example"""
     text = example["text"]
     labels = example["labels"]
-    text = ' '.join(text)
-    gt = get_std_gt(text, labels)
+    intent = example["intent"]
+    gt = get_std_gt(text, labels, intent)
     return text, gt
 
 
-def get_kv_pairs(num, model, random=True):
-    """return random kv_pairs of prediction and ground truth for given example,
-    process them into defined format, results are used to evaluate the model"""
-    assert model in ["parsing", "gpt3", "pre-train"]
-    output_path = 'data/jointslu/' + model + '/' + model + '_output.json'
-
-    gt_key = "std_gt"
-    p_key = "prediction" if model == "gpt3" else "std_output"
-
-    values = read_keys_from_json(output_path, p_key, gt_key)
-    predictions, std_gts = values[p_key], values[gt_key]
-    num_example = num if num <= len(predictions) else len(predictions)
-    print(f"get {num_example} examples")
-    preds, gts = [], []
-    if random:
-        idxs = [i for i in range(len(predictions))]
-        shuffle(idxs)
-        for i in range(num_example):
-            preds.append([predictions[idxs[i]]])
-            gts.append([std_gts[idxs[i]]])
-
-    preds, gts = predictions[:num_example], std_gts[:num_example]
-    assert len(predictions) == len(std_gts)
-    # prediction kv_pairs and std_gt kv_pairs for num examples
-    p_gt_pairs = [(str2kv_pairs(preds[i]), str2kv_pairs(gts[i])) for i in range(num_example)]
-    return p_gt_pairs
+def process_data_to_kv_pairs(loaded_data_dict):
+    """given loaded data dictionary, return key-value pairs"""
+    # todo: this function can use yield to be more efficient
+    kv_pairs_dict = {}
+    for model_name, data in loaded_data_dict.items():
+        std_gts, predictions = data["std_gts"], data["predictions"]
+        gt_kv_pairs = [str_to_kv_pairs(string) for string in std_gts]
+        pd_kv_pairs = [str_to_kv_pairs(string) for string in predictions]
+        kv_pairs_dict[model_name] = {
+            "gt_kv_pairs": gt_kv_pairs,
+            "pd_kv_pairs": pd_kv_pairs
+        }
+    return kv_pairs_dict
 
 
-def str2kv_pairs(string):
+def str_to_kv_pairs(string):
     """given a prediction or std_gt (str), return a dictionary contains label-phrase pairs"""
     kvs = {}
+    # remove extra characters from string
     string = string.strip().replace('\n', '')
     kv_pairs = string.split(';')
     for kv in kv_pairs:

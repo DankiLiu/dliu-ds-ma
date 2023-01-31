@@ -1,0 +1,4 @@
+model_name,num,correct,partial,incorrect,missing,spurious
+parsing,500,161,678,266,849,1036
+pre-train,500,1807,9,16,71,61
+gpt3,500,1352,65,106,447,469
