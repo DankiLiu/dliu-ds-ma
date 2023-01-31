@@ -86,6 +86,34 @@ def get_pretrain_params(version):
     return None, None, None
 
 
+def get_pretrain_checkpoint(version):
+    f = open("model_version.json")
+    parsing_data = json.load(f)["pre-train"]
+    for item in parsing_data:
+        if item["version"] == version:
+            return item["checkpoint"]
+    return None
+
+
+def find_ckpt_in_dir(checkpoint):
+    # find .ckpt file in folder
+    ckpt_files = []
+    ckpt_index = 0
+    import os
+    for root, dirs, files in os.walk(checkpoint):
+        for file in files:
+            if file.endswith('.ckpt'):
+                ckpt_files.append(os.path.join(root, file))
+    # todo: if more than one ckpt file available, ask which one
+    if len(ckpt_files) == 1:
+        return ckpt_files[0]
+    elif len(ckpt_files) > 1:
+        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}")
+        return ckpt_files[int(ckpt_index)]
+    else:
+        return None
+
+
 def get3output_paths(dataset, parsing_v, pretrain_v, gpt3_v):
     return get_output_path("parsing", dataset, parsing_v), \
            get_output_path("pre-train", dataset, pretrain_v), \
@@ -129,3 +157,18 @@ def create_output_file(model, dataset, v):
     open(output_path, 'a+').flush()
     print(f"{output_path} created")
     return output_path
+
+
+def get_output_folder(model, dataset):
+    """At evaluation step, need to get output files for each method, here returns the
+    output folder given model name and dataset"""
+    path = "data/" + dataset + "/"
+    if model == "parsing":
+        return path + "parsing/parsing_outputs/"
+    elif model == "pre-train":
+        return path + "pre-train/pre-train_outputs/"
+    elif model == "gpt3":
+        return path + "gpt3/gpt3_outputs/"
+    else:
+        print(f"wrong model name [{model}] is given")
+        return None

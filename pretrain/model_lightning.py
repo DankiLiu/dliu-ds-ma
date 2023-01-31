@@ -2,11 +2,13 @@ from transformers import AdamW, BertForTokenClassification
 
 import torch
 import pytorch_lightning as pl
+import logging
 
 
 class LitBertTokenClassification(pl.LightningModule):
     def __init__(self, tokenizer, labels_dict, learning_rate=2.2908676527677725e-05, batch_size=1):
         super().__init__()
+        print(f"initializing Bert... batch_size: {batch_size}, lr: {learning_rate}, num_labels: {len(labels_dict)}")
         self.labels_dict = labels_dict
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -20,12 +22,16 @@ class LitBertTokenClassification(pl.LightningModule):
                 input_ids,
                 labels):
         assert len(input_ids) == len(labels)
+        msg = "input shape :" + str(input_ids.shape)
+        logging.info(msg)
         response = self.model(input_ids=input_ids,
                               labels=labels)
         return response
 
     def training_step(self, batch, batch_idx):
         input_ids, labels = batch["input_ids"], batch["labels"]
+        msg = "input shape :" + str(input_ids.shape) + "labels batch: " + str(labels.shape)
+        logging.info(msg)
         output = self.model(input_ids=input_ids,
                             labels=labels)
         loss = output.loss

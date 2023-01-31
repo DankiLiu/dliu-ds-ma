@@ -1,5 +1,6 @@
 from gpt3.gpt3 import gpt3jointslu
 from parse.parsing import parse_testing
+from pretrain.multi_task.main import mt_testing
 from pretrain.train import pretrain_testing
 
 
@@ -31,7 +32,7 @@ def run_pretrain_model(dataset, model_version, labels_version, output_file):
     """run num of tests on pre-train model.
     model_version defines model hyper-parameters and tokenizer information etc.
     dataset amd labels_version defines the data and labels information, also decides which model to load"""
-    pretrain_testing(dataset=dataset,
+    mt_testing(dataset=dataset,
                      model_version=model_version,
                      labels_version=labels_version,
                      output_file=output_file)

@@ -12,7 +12,7 @@ from evaluation.evaluation_utils import get_std_gt
 from pathlib import Path
 
 # Update labels again if training dataset is generated
-from util import append_to_json, get_pretrain_params
+from util import append_to_json, get_pretrain_params, find_ckpt_in_dir
 
 
 def update_label():
@@ -29,7 +29,7 @@ def define_tokenizer():
     return tokenizer
 
 
-def select_data_module(dataset, labels_version, tokenizer):
+def select_data_module(bsz, dataset, labels_version, tokenizer):
     """select different data module, for now jointslu is the only dataset"""
     return JointsluDataModule(dataset=dataset,
                               labels_version=labels_version,
@@ -37,16 +37,17 @@ def select_data_module(dataset, labels_version, tokenizer):
 
 
 def train(model_version, dataset, labels_version):
+    lr, max_epoch, batch_size = get_pretrain_params(model_version)
     labels_dict = get_labels_dict(dataset, labels_version)
     tokenizer = define_tokenizer()
-    data_module = select_data_module(dataset, labels_version, tokenizer)
+    data_module = select_data_module(batch_size, dataset, labels_version, tokenizer)
     model = LitBertTokenClassification(labels_dict=labels_dict,
                                        tokenizer=tokenizer,
-                                       learning_rate=2.9908676527677725e-05)
+                                       learning_rate=lr)
     log_folder = "v" + str(model_version)
     name = dataset + "_lv" + str(labels_version)
     logger = TensorBoardLogger(log_folder, name=name)
-    trainer = Trainer(max_epochs=3, logger=logger)
+    trainer = Trainer(max_epochs=max_epoch, logger=logger)
     trainer.fit(model, datamodule=data_module)
 
 
@@ -97,27 +98,18 @@ def pretrain_predict(dataset, model_version, labels_version, lr, batch_size):
                                        learning_rate=lr,
                                        batch_size=batch_size)
     # select data module
-    data_module = select_data_module(dataset, labels_version, tokenizer)
+    data_module = select_data_module(batch_size, dataset, labels_version, tokenizer)
     # construct path with model_version and labels_version
     log_folder = "v" + str(model_version)
     name = dataset + "_lv" + str(labels_version)
     model_path = log_folder + "/" + name
     # find .ckpt file in folder
-    ckpt_files = []
-    ckpt_index = 0
-    import os
-    for root, dirs, files in os.walk(model_path):
-        for file in files:
-            if file.endswith('.ckpt'):
-                ckpt_files.append(os.path.join(root, model_path))
-    # todo: if more than one ckpt file available, ask which one
-    if ckpt_files is None:
-        print("no available trained pre-trained model, prediction failed")
+    ckpt_file = find_ckpt_in_dir(model_path)
+    if ckpt_file is None:
+        print("no checkpoint available")
         return
-    elif len(ckpt_files) > 1:
-        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}")
-    print(f"    [pretrain_testing] load model from {ckpt_files[ckpt_index]}")
-    trained_model = load_from_checkpoint(tokenizer, model, ckpt_files[ckpt_index])
+    print(f"    [pretrain_testing] load model from {ckpt_file}")
+    trained_model = load_from_checkpoint(tokenizer, model, ckpt_file)
     trainer = Trainer()
     results = trainer.predict(model=trained_model, datamodule=data_module)
     print("    [pretrain_testing] results shape is ", results)
@@ -137,8 +129,8 @@ def post_processing(results, output_file):
             text = r["text"]
             gt = r["gt"]
             prediction = r["prediction"]
-            std_gt = get_std_gt(text, gt)
-            std_output = get_std_gt(text, prediction)
+            std_gt = get_std_gt(text, gt, None)
+            std_output = get_std_gt(text, prediction, None)
             new_dict = {
                 "num": nth_prediction,
                 "text": text,

@@ -201,6 +201,15 @@ def set_cls_sep_tokens():
     outfile.close()
 
 
+def get_intents_labels_keys(dataset, labels_version):
+    """return intents and labels for dataset and labels_version with a list"""
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version)
+    labels = list(label_dict.keys())
+    intents = list(intent_dict.keys())
+    return labels + intents
+
+
 def get_intents_dict(dataset, labels_version):
     """return intents in dictionary form, one intent matches one indenx number"""
     file_path = "data/" + dataset + "/labels/intents" + labels_version + ".json"

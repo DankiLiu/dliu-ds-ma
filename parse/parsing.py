@@ -46,7 +46,13 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
     results = []
     utexts, ulabels, uintents, parsed_phrases, intent_phrases = \
         get_labels_ts_phrases(testing_file=testing_file, num=num, do_shuffle=do_shuffle)
-    assert len(utexts) == len(ulabels) == len(parsed_phrases) == num
+    print("[parsing parsing.py]")
+    print("utexts length: ", len(utexts))
+    print("ulabels length: ", len(ulabels))
+    print("intent phrases: ", len(intent_phrases))
+    print("parsed phrases length: ", len(parsed_phrases))
+    print("num: ", num)
+    assert len(utexts) == len(ulabels) == len(parsed_phrases)
     # load bert for similarity
     sbert = sbert_model()
     # get labels by labels_version
@@ -55,15 +61,19 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
     LABELS = list(label_dict.keys())
     INTENT_LABELS = list(intent_dict.keys())
     for n in range(num):
+        cosine_scores, cosine_intent_scores = None, None
         # load simplified labels
-        cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
-        cosine_intent_scores = cos_sim_per_example(intent_phrases[n], INTENT_LABELS, sbert)
+        if parsed_phrases[n]:
+            cosine_scores = cos_sim_per_example(parsed_phrases[n], LABELS, sbert)
+        if intent_phrases[n]:
+            print(f"[parsing] intent phrases {intent_phrases[n]}")
+            cosine_intent_scores = cos_sim_per_example(intent_phrases[n], INTENT_LABELS, sbert)
 
         label_idxs = [torch.argmax(i_score).item() for i_score in cosine_scores]
         prediction = [LABELS[idx] for idx in label_idxs]
 
         intent_prediction = ""
-        if intent_phrases[n] is not None:
+        if intent_phrases[n]:
             intent_num = len(intent_phrases[n])
             max_intents_jdxs = [int(torch.argmax(cosine_intent_scores[n])) for n in range(intent_num)]
             max_scores = []

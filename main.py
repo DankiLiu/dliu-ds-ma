@@ -1,8 +1,10 @@
 import json
 
 from data.data_processing import check_training_data, check_labels_atis
-from evaluation.evaluation import evaluate_model, evaluate_acc_f1
+from evaluation.evaluation import evaluate_acc_f1, model_evaluation
+from evaluation.main import evaluate_bymodel, load_bymodel_metrics, evaluate_bylabel
 from model_run import run_gpt3_model, run_parsing_model, run_pretrain_model
+from pretrain.multi_task.main import train_multi_task, mt_testing
 from pretrain.train import train
 from util import get_output_path
 
@@ -48,49 +50,10 @@ def test_model(model_name, num, model_version, dataset, labels_version):
                            output_file=output_file)
 
 
-def evaluate_all_labels():
-    # read all simplified labels
-    f = open("data/jointslu/labels/labels00.json")
-    labels_dict = json.load(f)
-    f.close()
-    labels = list(labels_dict.keys())
-    for label in labels:
-        # for each label, test all 500 examples
-        # evaluate_model(model_name="pre-train", num_exps=500, label_name=label)
-        evaluate_model(model_name="parsing", num_exps=500, label_name=label)
-        evaluate_model(model_name="gpt3", num_exps=500, label_name=label)
-
-
-def evaluate_all():
-    evaluate_model(model_name="pre-train", num_exps=500)
-    evaluate_model(model_name="parsing", num_exps=500)
-    evaluate_model(model_name="gpt3", num_exps=500)
-
-
-def acc_f1_all():
-    evaluate_acc_f1("gpt3", "ALL", True)
-    evaluate_acc_f1("parsing", "ALL", True)
-    evaluate_acc_f1("pre-train", "ALL", True)
-    evaluate_acc_f1("gpt3", "ALL", False)
-    evaluate_acc_f1("parsing", "ALL", False)
-    evaluate_acc_f1("pre-train", "ALL", False)
-
-
-def acc_f1_all_labels():
-    # read all simplified labels
-    f = open("data/jointslu/labels/labels00.json")
-    labels_dict = json.load(f)
-    f.close()
-    labels = list(labels_dict.keys())
-    for label in labels:
-        evaluate_acc_f1("gpt3", label, True)
-        evaluate_acc_f1("parsing", label, True)
-        evaluate_acc_f1("pre-train", label, True)
-        evaluate_acc_f1("gpt3", label, False)
-        evaluate_acc_f1("parsing", label, False)
-        evaluate_acc_f1("pre-train", label, False)
-
-
 if __name__ == '__main__':
     # train pretrained model with new label set
-    test_model("gpt3", 5, 1, "jointslu", "01")
+    # evaluate model and store the metrics under evaluation folder
+    # load_bymodel_metrics("jointslu")
+    # model_evaluation(dataset="jointslu", sample_num=500,
+    #                 bylabel=True, labels_version="01")
+    evaluate_bylabel(500, "jointslu", "01", False)
