@@ -201,18 +201,22 @@ def set_cls_sep_tokens():
     outfile.close()
 
 
-def get_intents_labels_keys(dataset, labels_version):
+def get_intents_labels_keys(dataset, labels_version, scenario):
     """return intents and labels for dataset and labels_version with a list"""
-    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
-    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version)
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
+    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
     labels = list(label_dict.keys())
     intents = list(intent_dict.keys())
     return labels + intents
 
 
-def get_intents_dict(dataset, labels_version):
+def get_intents_dict(dataset, labels_version, scenario):
     """return intents in dictionary form, one intent matches one indenx number"""
-    file_path = "data/" + dataset + "/labels/intents" + labels_version + ".json"
+    file_path = "data/" + dataset + "/labels/"
+    if dataset == "jointslu":
+        file_path += "intents" + labels_version + ".json"
+    elif dataset == "massive":
+        file_path += scenario + "_intents" + labels_version + ".json"
     if os.path.exists(file_path):
         f = open(file_path)
         intents_dict = json.load(f)
@@ -222,9 +226,13 @@ def get_intents_dict(dataset, labels_version):
     return None
 
 
-def get_labels_dict(dataset, labels_version):
+def get_labels_dict(dataset, labels_version, scenario):
     """return labels in dictionary form, one label matches to one index number"""
-    file_path = "data/" + dataset + "/labels/labels" + labels_version + ".json"
+    file_path = "data/" + dataset + "/labels/"
+    if dataset == "jointslu":
+        file_path += "labels" + labels_version + ".json"
+    elif dataset == "massive":
+        file_path += scenario + "_labels" + labels_version + ".json"
     if os.path.exists(file_path):
         f = open(file_path)
         labels_dict = json.load(f)
@@ -234,11 +242,18 @@ def get_labels_dict(dataset, labels_version):
     return None
 
 
-def get_ori_sim_dict(dict_type, dataset, labels_version):
-    """return ori_sim labels in dictionary form, one sim label matches to one ori label"""
+def get_ori_sim_dict(dict_type, dataset, labels_version, scenario):
+    """return ori_sim labels in dictionary form, one sim label matches to one ori label
+    :dict_type: labels, intents"""
     print(f"getting {dict_type} ori-sim dict")
-    file_name = dict_type + labels_version + ".csv"
+    file_name = ""
+    if dataset == "jointslu":
+        file_name = dict_type + labels_version + ".csv"
+    elif dataset == "massive":
+        file_name = scenario + "_" + dict_type + labels_version + ".csv"
+
     ori_sim_labels_path = "data/" + dataset + "/labels/" + file_name
+
     if os.path.exists(ori_sim_labels_path):
         df = pd.read_csv(ori_sim_labels_path)
         ori, sim = df['ori'].tolist(), df['sim'].tolist()
@@ -312,47 +327,117 @@ def get_simplified_labels(oris: List, ori_sim_dict):
     return labels
 
 
-def check_training_data(dataset, labels_version):
+def check_training_data(dataset, labels_version, scenario, few_shot):
     """check whether data files are ready and return the paths,
-    if not, construct new data according to dataset and labels_version"""
+    if not, construct new data according to dataset and labels_version,
+    if dataset == massive, scenario should not be empty"""
     folder_path = "data/" + dataset + "/training_data/labels" + labels_version
     print(f"[check_training_data]\nlv{labels_version}: training data should be stored in {folder_path}")
-    train_p = folder_path + "/train.json"
-    test_p = folder_path + "/test.json"
-    val_p = folder_path + "/val.json"
+    train_p, test_p, val_p = "", "", ""
+    if dataset == "jointslu":
+        train_p = folder_path + "/" + "train.json" if not few_shot else folder_path + "/" + "few_train.json"
+        test_p = folder_path + "/" + "test.json"
+        val_p = folder_path + "/" + "val.json"
+    elif dataset == "massive":
+        train_p = folder_path + "/" + scenario + "_train.json" if not few_shot else folder_path + "/" + scenario + "_few_train.json"
+        test_p = folder_path + "/" + scenario + "_test.json"
+        val_p = folder_path + "/" + scenario + "_val.json"
+
     # if folder path exist and not empty, then the data exists and return True
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
-    if not (os.path.exists(train_p) and os.path.exists(test_p) and os.path.exists(val_p)):
+    if not os.path.exists(train_p):
+        if few_shot:
+            construct_few_shot_training_data(dataset=dataset,
+                                             labels_version=labels_version,
+                                             scenario=scenario)
+        else:
+            construct_training_data(dataset=dataset,
+                                    data_type="train",
+                                    labels_version=labels_version,
+                                    scenario=scenario)
+    if not (os.path.exists(test_p) and os.path.exists(val_p)):
         # construct training data
-        for data_type in ["train", "test", "val"]:
+        for data_type in ["test", "val"]:
             construct_training_data(dataset=dataset,
                                     data_type=data_type,
-                                    labels_version=labels_version)
+                                    labels_version=labels_version,
+                                    scenario=scenario)
     return train_p, test_p, val_p
 
 
-def construct_training_data(dataset, data_type, labels_version):
-    """change the annotated data for training pre-trained model to simplified labels"""
-    path = "data/" + dataset + "/training_data/" + data_type + ".json"
+def construct_few_shot_training_data(dataset, labels_version, scenario):
+    # few-shot data is only for training
+    path = "data/jointslu/training_data/train.json"
+    if dataset == "massive":
+        path = "data/massive/training_data/" + scenario + "_train.json"
+
+    new_path = "data/" + dataset + "/training_data/labels" + labels_version + "/"
+    if dataset == "jointslu":
+        new_path += "few_train.json"
+    elif dataset == "massive":
+        new_path += scenario + "_" + "few_train.json"
+
+    file = open(path, 'r')
+
+    ori_data = json.load(file)
+    all_new_data = simplify_labels_intent(ori_data, dataset, labels_version, scenario)
+    from random import shuffle
+    shuffle(all_new_data)
+    # shuffle , read labels , select one for each label
+    keys = get_intents_labels_keys(dataset, labels_version, scenario)
+
+    few_shots = []
+    for key in keys:
+        for e in all_new_data:
+            if e["intent"] == key or key in e["labels"]:
+                few_shots.append(e)
+                break
+    # save in file
+    print(f"{len(keys)} keys")
+    print(f"{len(few_shots)} shot examples")
+    with open(new_path, 'w+') as f:
+        json.dump(few_shots, f, indent=4)
+        f.close()
+
+
+def construct_training_data(dataset, data_type, labels_version, scenario):
+    """change the annotated data for training pre-trained model to simplified labels
+    if dataset == massive, path is with scenario info"""
+    path = "data/" + dataset + "/training_data/"  # original labels data from training_data folder
+    if dataset == "jointslu":
+        path = path + data_type + ".json"
+    elif dataset == "massive":
+        path = path + scenario + "_" + data_type + ".json"
     print(f"[construct_training_data]\nconstructing {dataset}.{data_type} data from {path}")
-    new_path = "data/" + dataset + "/training_data/labels" + labels_version + "/" \
-               + data_type + ".json"
+
+    new_path = "data/" + dataset + "/training_data/labels" + labels_version + "/"
+    if dataset == "jointslu":
+        new_path += data_type + ".json"
+    elif dataset == "massive":
+        new_path += scenario + "_" + data_type + ".json"
     file = open(path, 'r')
     ori_data = json.load(file)
-    # new_data = construct_data(data, dataset, labels_version)
-    new_data = simplify_labels_intent(ori_data, dataset, labels_version)
+
+    new_data = simplify_labels_intent(ori_data, dataset, labels_version, scenario)
     with open(new_path, 'w+') as f:
         json.dump(new_data, f, indent=4)
         f.close()
 
 
-def simplify_labels_intent(data, dataset, labels_version):
+def simplify_labels_intent(data, dataset, labels_version, scenario):
     """change all the labels in training data to defined simplified labels and intents,
     each label version matches a intent version."""
     # get ori-sim labels dict
-    labels_dict = get_ori_sim_dict(dict_type="labels", dataset=dataset, labels_version=labels_version)
-    intents_dict = get_ori_sim_dict(dict_type="intents", dataset=dataset, labels_version=labels_version)
+    labels_dict = get_ori_sim_dict(dict_type="labels",
+                                   dataset=dataset,
+                                   labels_version=labels_version,
+                                   scenario=scenario)
+    intents_dict = get_ori_sim_dict(dict_type="intents",
+                                    dataset=dataset,
+                                    labels_version=labels_version,
+                                    scenario=scenario)
+
     simplified_data = []
     for sample in data:
         sample["intent"] = intents_dict[sample["intent"]] if sample["intent"] in intents_dict.keys() else "unknown"
@@ -370,12 +455,12 @@ def simplify_labels_intent(data, dataset, labels_version):
     return simplified_data
 
 
-def construct_data(data, dataset, labels_version):
+def construct_data(data, dataset, labels_version, scenario):
     """change the labels to simplified labels and add bos and eos to the label"""
     new_data = []
     i = 0
     # get ori-sim labels dict
-    ori_sim_dict = get_ori_sim_dict(dataset=dataset, labels_version=labels_version)
+    ori_sim_dict = get_ori_sim_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
     for ele in data:
         # labels list
         labels = ele["labels"].split(' ')
@@ -392,17 +477,22 @@ def construct_data(data, dataset, labels_version):
     return new_data
 
 
-def generate_gpt3_examples_file(dataset, labels_version, in_file):
+def generate_gpt3_examples_file(dataset, labels_version, in_file, scenario):
     """select an example for each label and store into file, number suggests the labels_version"""
     examples = []
-    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
     labels = list(label_dict.keys())
-    # open pre-train training data file
-    # todo: check whether training data exists, already checked???
-    path = "data/" + dataset + "/training_data/labels" + labels_version + "/train.json"
-    print(f"gpt3 {dataset}_lv{labels_version} example file does not exist, creating one from training data {path}")
-    f = open(path, 'r')
+
+    # training data path
+    train_path = "data/" + dataset + "/training_data/labels" + labels_version + "/"
+    if dataset == "jointslu":
+        train_path += "train.json"
+    elif dataset == "massive":
+        train_path += scenario + "_train.json"
+
+    f = open(train_path, 'r')
     data = json.load(f)
+    # construct example, one for each label
     for idx, label in enumerate(labels):
         example = None
         for item in data:
