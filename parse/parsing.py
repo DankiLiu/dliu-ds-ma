@@ -33,16 +33,16 @@ def plotting(labels=None, acc: List = None, f1: List = None):
     plt.show()
 
 
-def parse_testing(testing_file, num, model_version, dataset, output_file, labels_version):
+def parse_testing(testing_file, num, model_version, dataset, output_file, labels_version, scenario):
     do_shuffle = get_parsing_params(model_version)
     if not do_shuffle:
         print("model does not has info to parameter [shuffle]")
     do_shuffle = True if do_shuffle == "True" else False
     print(f"    [parsing testing] get v{model_version} parameter, shuffle={do_shuffle}")
-    parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
+    parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle, scenario)
 
 
-def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle):
+def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle, scenario):
     results = []
     utexts, ulabels, uintents, parsed_phrases, intent_phrases = \
         get_labels_ts_phrases(testing_file=testing_file, num=num, do_shuffle=do_shuffle)
@@ -56,8 +56,8 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle)
     # load bert for similarity
     sbert = sbert_model()
     # get labels by labels_version
-    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
-    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version)
+    label_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
+    intent_dict = get_intents_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
     LABELS = list(label_dict.keys())
     INTENT_LABELS = list(intent_dict.keys())
     for n in range(num):
