@@ -6,7 +6,7 @@ import logging
 
 
 class LitBertTokenClassification(pl.LightningModule):
-    def __init__(self, tokenizer, labels_dict, learning_rate=2.2908676527677725e-05, batch_size=1):
+    def __init__(self, tokenizer, labels_dict, learning_rate, batch_size=1):
         super().__init__()
         print(f"initializing Bert... batch_size: {batch_size}, lr: {learning_rate}, num_labels: {len(labels_dict)}")
         self.labels_dict = labels_dict

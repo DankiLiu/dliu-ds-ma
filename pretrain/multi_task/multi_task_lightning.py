@@ -2,19 +2,20 @@ from transformers import AdamW, AutoConfig, AutoModel, BertForTokenClassificatio
 
 import torch
 import pytorch_lightning as pl
-import logging
 
 from pretrain.multi_task.multi_task_bert import MultiTaskBert
 
 
 class LitBertMultiTask(pl.LightningModule):
-    def __init__(self, tokenizer, tasks, learning_rate=2.2908676527677725e-05, batch_size=1):
+    def __init__(self, tokenizer, tasks, classifier_only, learning_rate=2.2908676527677725e-05, batch_size=1):
         super().__init__()
         self.learning_rate = learning_rate
         self.batch_size = batch_size
         self.tasks = tasks
         self.tokenizer = tokenizer
-        self.multi_task_bert = MultiTaskBert(tokenizer, 'bert-base-uncased', tasks)
+        self.multi_task_bert = MultiTaskBert(tokenizer, 'bert-base-uncased', tasks, classifier_only)
+
+        self.save_hyperparameters(ignore=["model"])
 
     def forward(self, input_ids, task_ids, attention_mask):
         # todo: one task or two at the same time?

@@ -1,26 +1,31 @@
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
 
-from pretrain.multi_task.jointslu_mt_dataset import JointSluMTDataset
+from pretrain.multi_task.jointslu_mt_dataset import MTDataset
 
 
-class JointsluMTDataModule(pl.LightningDataModule):
-    def __init__(self, dataset, labels_version, tokenizer, train_bsz=1, test_bsz=1):
+class MTDataModule(pl.LightningDataModule):
+    def __init__(self, dataset, labels_version, scenario, tokenizer, train_bsz=1, test_bsz=1, few_shot=False):
         super().__init__()
         self.dataset = dataset
         self.labels_version = labels_version
+        self.scenario = scenario
         self.train_bsz = train_bsz
         self.test_bsz = test_bsz
         self.train_dataset, self.val_dataset, self.test_dataset = \
             None, None, None
         self.tokenizer = tokenizer
+        self.few_shot = few_shot
 
     def _create_data(self, split):
-        data = JointSluMTDataset.create_data(
+        data = MTDataset.create_data(
             self.dataset,
             self.labels_version,
+            self.scenario,
             split,
-            self.tokenizer)
+            self.tokenizer,
+            self.few_shot
+        )
         return data
 
     def prepare_data(self) -> None:

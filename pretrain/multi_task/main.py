@@ -7,37 +7,129 @@ from transformers import BertTokenizer
 from data.data_processing import get_labels_dict, get_intents_dict
 from evaluation.evaluation_utils import get_std_gt
 from pretrain.multi_task.multi_task_lightning import LitBertMultiTask
-from pretrain.multi_task.jointslu_mt_data_module import JointsluMTDataModule
+from pretrain.multi_task.jointslu_mt_data_module import MTDataModule
 from pretrain.multi_task.multi_task_bert import Task
 from util import get_pretrain_params, get_pretrain_checkpoint, find_ckpt_in_dir, append_to_json
 
 import numpy as np
 
-def train_multi_task(model_version, dataset, labels_version):
+
+class Config:
+    def __init__(self, from_ckpt, classifier_only, auto_lr, old_task, few_shot):
+        self.from_ckpt = from_ckpt
+        self.classifier_only = classifier_only
+        self.auto_lr = auto_lr
+        if self.from_ckpt:
+            self.old_task = old_task
+        self.few_shot = few_shot
+
+
+def train_multi_task(model_version, dataset, labels_version, scenario, config):
     # define tasks
-    tasks = define_tasks(dataset, labels_version)
+    tasks = define_tasks(dataset, labels_version, scenario)
     # init tokenizer
     tokenizer = define_tokenizer()
     # create data module
-    data_module = JointsluMTDataModule(dataset=dataset,
-                                       labels_version=labels_version,
-                                       tokenizer=tokenizer)
+    data_module = MTDataModule(dataset=dataset,
+                               labels_version=labels_version,
+                               scenario=scenario,
+                               tokenizer=tokenizer,
+                               few_shot=config.few_shot)
+    model = None
+    if not config.from_ckpt:
+        model = LitBertMultiTask(tokenizer=tokenizer, tasks=tasks, classifier_only=config.classifier_only)
+        print(f"multi_task classifier layer hidden size: {model.multi_task_bert.output_heads['0'].hidden_size}, "
+          f"{model.multi_task_bert.output_heads['0'].num_labels}, {model.multi_task_bert.output_heads['1'].num_labels}")
 
-    model = LitBertMultiTask(tokenizer=tokenizer, tasks=tasks)
+    if config.from_ckpt:  # load model from checkpoint
+        print("load from ckpt")
+        trained_model = LitBertMultiTask(tokenizer=tokenizer,
+                                         tasks=config.old_task,
+                                         classifier_only=config.classifier_only)
+        require_grad = None
+        for param in trained_model.multi_task_bert.encoder.parameters():
+            require_grad = param.requires_grad
+            break
+        print("trained_model requires_grad", require_grad)
+
+        ckpt_file = get_ckpt_file(model_version)
+        model = trained_model.load_from_checkpoint(ckpt_file,
+                                                   tokenizer=tokenizer,
+                                                   tasks=config.old_task,
+                                                   classifier_only=config.classifier_only)
+
+        require_grad2 = None
+        for param in model.multi_task_bert.encoder.parameters():
+            require_grad2 = param.requires_grad
+            break
+        print("loaded|_model requires_grad", require_grad2)
+
+        print(f"new heads hidden size and labels number: {model.multi_task_bert.output_heads['0'].hidden_size}, "
+              f"{model.multi_task_bert.output_heads['0'].num_labels}, "
+              f"{model.multi_task_bert.output_heads['1'].num_labels}")
+
+        # todo: set classification layer to new task settings
+        model.multi_task_bert.set_output_heads(tasks)
+        require_grad_e, require_grad_d = None, None
+        for param in model.multi_task_bert.encoder.parameters():
+            require_grad_e = param.requires_grad
+            break
+        for param in model.multi_task_bert.output_heads['0'].parameters():
+            require_grad_e = param.requires_grad
+            break
+        print("rehead_model encoder required_grad: ", require_grad_e)
+        print("rehead_model decoder required_grad: ", require_grad_d)
+        print(f"new heads hidden size and labels number: {model.multi_task_bert.output_heads['0'].hidden_size}, "
+              f"{model.multi_task_bert.output_heads['0'].num_labels}, "
+              f"{model.multi_task_bert.output_heads['1'].num_labels}")
+
+    # log folder naming
+    print("set log files")
     log_folder = "pretrain/mt_v" + str(model_version)
     name = dataset + "_lv" + str(labels_version)
-    # todo: store this file path to model_version file
+    if scenario:
+        name += "_" + scenario
+    if config.classifier_only:
+        name += "_cl"
+    if config.few_shot:
+        name += "_few"
     logger = TensorBoardLogger(log_folder, name=name)
 
     lr, max_epoch, batch_size = get_pretrain_params(model_version)
-    trainer = Trainer(max_epochs=max_epoch, logger=logger)
-    trainer.fit(model, datamodule=data_module)
+
+    # todo: print some info about the loaded model
+
+    if config.auto_lr:
+        print("auto lr")
+        """
+        trainer = Trainer()
+        lr_finder = trainer.tuner.lr_find(model)
+
+        print(lr_finder.results)
+        fig = lr_finder.plot(suggest=True)
+        fig.show()
+
+        new_lr = lr_finder.suggestion()
+        model.hparams.lr = new_lr
+        print(model.hparams)
+        trainer.tune(model, datamodule=data_module)
+        print(f"lr {model.learning_rate} bz {model.batch_size}")
+        exit()
+        """
+        trainer = Trainer(auto_lr_find=True,
+                          auto_scale_batch_size=True,
+                          max_epochs=3,
+                          logger=logger)
+        trainer.fit(model, datamodule=data_module)
+    else:
+        trainer = Trainer(max_epochs=1, logger=logger)
+        trainer.fit(model, datamodule=data_module)
 
 
-def define_tasks(dataset, labels_version):
+def define_tasks(dataset, labels_version, scenario):
     # define tasks
-    labels_dict = get_labels_dict(dataset, labels_version)
-    intents_dict = get_intents_dict(dataset, labels_version)
+    labels_dict = get_labels_dict(dataset, labels_version, scenario)
+    intents_dict = get_intents_dict(dataset, labels_version, scenario)
 
     tok_cls_task = Task(task_id=0,
                         task_name='tok',
@@ -58,24 +150,30 @@ def define_tokenizer():
         cls_token='BOS')
 
 
-def mt_testing(dataset, model_version, labels_version, output_file):
+def mt_testing(dataset, model_version, labels_version, output_file, scenario):
     # define tasks (tok and seq classification)
-    tasks = define_tasks(dataset, labels_version)
+    tasks = define_tasks(dataset, labels_version, scenario)
     # init tokenizer
     tokenizer = define_tokenizer()
     # init data module
-    data_module = JointsluMTDataModule(dataset=dataset,
-                                       labels_version=labels_version,
-                                       tokenizer=tokenizer)
+    # todo: load massive data
+    data_module = MTDataModule(dataset=dataset,
+                               labels_version=labels_version,
+                               scenario=scenario,
+                               tokenizer=tokenizer)
     model = LitBertMultiTask(tokenizer=tokenizer, tasks=tasks)
+
     # load model from checkpoint
     ckpt_file = get_ckpt_file(model_version)
     model_from_checkpoint = model.load_from_checkpoint(ckpt_file, tokenizer=tokenizer, tasks=tasks)
+
     # model prediction
     trainer = Trainer()
     predictions = trainer.predict(model=model_from_checkpoint, datamodule=data_module)
     results = post_processing(predictions)
+
     # save the results in output file
+    # todo: if dataset is massive, any difference?
     append_to_json(file_path=output_file, new_data=results)
     print(f"    [pre-trained bert] {len(results)} results appended to parsing_output.json")
 

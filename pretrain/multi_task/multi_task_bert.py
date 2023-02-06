@@ -5,7 +5,7 @@ from transformers import BertModel
 
 
 class MultiTaskBert(torch.nn.Module):
-    def __init__(self, tokenizer, encoder_name, tasks: List):
+    def __init__(self, tokenizer, encoder_name, tasks: List, classifier_only):
         super().__init__()
         self.encoder = BertModel.from_pretrained(encoder_name)
 
@@ -16,6 +16,14 @@ class MultiTaskBert(torch.nn.Module):
 
         self.tokenizer = tokenizer
         self.encoder.resize_token_embeddings(len(self.tokenizer))
+        if classifier_only:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+
+    def set_output_heads(self, tasks):
+        for task in tasks:
+            decoder = self._create_output_head(self.encoder.config.hidden_size, task)
+            self.output_heads[str(task.id)] = decoder
 
     @staticmethod
     def _create_output_head(encoder_hidden_size: int, task):
@@ -75,7 +83,7 @@ class TokenClassificationHead(torch.nn.Module):
         self.dropout = torch.nn.Dropout(dropout_p)
         self.classifier = torch.nn.Linear(hidden_size, num_labels)
         self.num_labels = num_labels
-
+        self.hidden_size = hidden_size
         self._init_weights()
 
     def _init_weights(self):
@@ -115,6 +123,7 @@ class SequenceClassificationHead(torch.nn.Module):
         super().__init__()
         self.num_labels = num_labels
         self.dropout = torch.nn.Dropout(dropout_p)
+        self.hidden_size = hidden_size
         self.classifier = torch.nn.Linear(hidden_size, num_labels)
 
         self._init_weights()
@@ -152,5 +161,6 @@ class Task:
 
     def print(self):
         print(f"task_id: {self.id}")
+        print(f"task_name: {self.name}")
         print(f"num of labels: {self.num_labels}")
         print(f"task_type: {self.type}")

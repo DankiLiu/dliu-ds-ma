@@ -33,7 +33,7 @@ DiaSample = Dict[str, Union[torch.Tensor, str, int]]
 DiaBatch = Dict[str, Union[List, Tensor]]
 
 
-class JointSluMTDataset(Dataset):
+class MTDataset(Dataset):
     def __init__(self,
                  tokenizer,
                  split,
@@ -110,20 +110,23 @@ class JointSluMTDataset(Dataset):
         return result
 
     @classmethod
-    def create_data(cls, dataset, labels_version, split: DatasetSplitName,
-                    tokenizer: Tokenizer):
+    def create_data(cls, dataset, labels_version, scenario, split: DatasetSplitName,
+                    tokenizer: Tokenizer, few_shot):
         # load labels_dict
-        intents_dict = get_intents_dict(dataset=dataset, labels_version=labels_version)
-        labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
-        data_folder = "data/" + dataset + "/training_data/labels" + labels_version
+        intents_dict = get_intents_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
+        labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
+        data_folder = "data/" + dataset + "/training_data/labels" + labels_version + '/'
+
         path = None
-        # todo: if path not exist, construct training data. or need I?
         if split == 'train':
-            path = data_folder + "/train.json"
+            if few_shot:
+                path = data_folder + "few_train.json" if not dataset == "massive" else data_folder + scenario + "_few_train.json"
+            else:
+                path = data_folder + "train.json" if not dataset == "massive" else data_folder + scenario + "_train.json"
         elif split == 'test':
-            path = data_folder + "/test.json"
+            path = data_folder + "test.json" if not dataset == "massive" else data_folder + scenario + "_test.json"
         elif split == 'val':
-            path = data_folder + "/val.json"
+            path = data_folder + "val.json" if not dataset == "massive" else data_folder + scenario + "_val.json"
         if path:
             with open(path, 'r') as f:
                 annotations = json.load(f)
