@@ -120,13 +120,13 @@ def get3output_paths(dataset, parsing_v, pretrain_v, gpt3_v):
            get_output_path("gpt3", dataset, gpt3_v)
 
 
-def get_output_path(model_name, dataset, model_version):
+def get_output_path(model_name, dataset, model_version, scenario):
     """return output path given model name and version,
     model versions are defined in model_version.json file"""
-    return create_output_file(model_name, dataset, model_version)
+    return create_output_file(model_name, dataset, model_version, scenario)
 
 
-def create_output_file(model, dataset, v):
+def create_output_file(model, dataset, v, scenario):
     """create or check file existance according to version and return file location
     """
     path = "data/" + dataset + "/"
@@ -145,7 +145,8 @@ def create_output_file(model, dataset, v):
     day = now.strftime("%d")
     month = now.strftime("%m")
     file_name = month + day + 'v' + str(v) + '.json'
-
+    if scenario:
+        file_name = month + day + 'v' + str(v) + "_" + scenario + '.json'
     output_path = path + file_name
     from os.path import exists
     file_index = 1
