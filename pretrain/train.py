@@ -36,9 +36,9 @@ def select_data_module(bsz, dataset, labels_version, tokenizer):
                               tokenizer=tokenizer)
 
 
-def train(model_version, dataset, labels_version):
+def train(model_version, dataset, labels_version, scenario=None):
     lr, max_epoch, batch_size = get_pretrain_params(model_version)
-    labels_dict = get_labels_dict(dataset, labels_version)
+    labels_dict = get_labels_dict(dataset, labels_version, scenario)
     tokenizer = define_tokenizer()
     data_module = select_data_module(batch_size, dataset, labels_version, tokenizer)
     model = LitBertTokenClassification(labels_dict=labels_dict,
@@ -53,7 +53,7 @@ def train(model_version, dataset, labels_version):
 
 def auto_lr_bz_train(dataset, labels_version):
     """train model with best batch size and learning rate found by lightning"""
-    labels_dict = get_labels_dict(dataset, labels_version)
+    labels_dict = get_labels_dict(dataset, labels_version, None)
     tokenizer = define_tokenizer()
     model = LitBertTokenClassification(labels_dict=labels_dict,
                                        tokenizer=tokenizer)
@@ -90,9 +90,9 @@ def pretrain_testing(dataset, model_version, labels_version, output_file):
     post_processing(results, output_file)
 
 
-def pretrain_predict(dataset, model_version, labels_version, lr, batch_size):
+def pretrain_predict(dataset, model_version, labels_version, lr, batch_size, scenario):
     tokenizer = define_tokenizer()
-    labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+    labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
     model = LitBertTokenClassification(tokenizer=tokenizer,
                                        labels_dict=labels_dict,
                                        learning_rate=lr,
