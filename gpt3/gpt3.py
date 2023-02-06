@@ -88,7 +88,7 @@ def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine):
     return response["choices"][0]["text"]
 
 
-def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_version):
+def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_version, scenario):
     """num: number of input texts to be tested,
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
@@ -100,6 +100,7 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
         print(f"model v{model_version} not avaliable, run gpt3 model failed")
         return
     print(f"    [gpt3jointslu] v{model_version} prompt={prompt}, model_name={model_name}, select={select}")
+
     # load test examples
     labels, ts, std_gts = get_labels_ts_stdgts(testing_file=testing_file,
                                                num=num)
@@ -108,7 +109,8 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
     print(f"    [gpt3jointslu] testing {len(ts)} examples ---")
     # load examples if choose==True
     examples = load_examples(dataset=dataset,
-                             labels_version=labels_version)
+                             labels_version=labels_version,
+                             scenario=scenario)
     if select or select == "True":
         # For each sentence, find an example by similarity
         print("    [gpt3jointslu]%%choose example by similarity")
@@ -134,4 +136,4 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
         }
         print(f"{i}th result: {result}")
         append_to_json(file_path=output_path, new_data=result)
-        time.sleep(3.5)
+        time.sleep(1.0)

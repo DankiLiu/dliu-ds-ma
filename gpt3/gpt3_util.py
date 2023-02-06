@@ -24,7 +24,7 @@ ROBOT_TRANSLATOR = "A robot is given a command in natural language sentence, " \
 ONESHOT_ROBOT_TRANSLATOR = "for example:\ncommand sentence:{exp_text}\ntranslation:{exp_gt}\n"
 
 
-def load_examples(dataset, labels_version):
+def load_examples(dataset, labels_version, scenario):
     """
     load examples selected from training data
     examples: List
@@ -32,7 +32,8 @@ def load_examples(dataset, labels_version):
         "text": *,
         "labels": *}
     """
-    path = check_example_file(dataset, labels_version)
+    path = check_example_file(dataset, labels_version, scenario=scenario)
+
     file = open(path, 'r')
     data = json.load(file)
     examples = []
@@ -53,15 +54,20 @@ def load_examples(dataset, labels_version):
     return examples
 
 
-def check_example_file(dataset, labels_version):
+def check_example_file(dataset, labels_version, scenario):
     # check the existence of examples file with labels_version
     folder_name = 'data/' + dataset + '/gpt3/'
-    file_name = 'examples' + labels_version + '.json'
+    file_name = ""
+    if dataset == "jointslu":
+        file_name = 'examples' + labels_version + '.json'
+    elif dataset == "massive":
+        file_name = scenario + "_examples" + labels_version + ".json"
     path = folder_name + file_name
     if not os.path.exists(path):
         generate_gpt3_examples_file(dataset=dataset,
                                     labels_version=labels_version,
-                                    in_file=path)
+                                    in_file=path,
+                                    scenario=scenario)
     return path
 
 
