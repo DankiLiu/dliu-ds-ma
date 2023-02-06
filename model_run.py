@@ -4,7 +4,7 @@ from pretrain.multi_task.main import mt_testing
 from pretrain.train import pretrain_testing
 
 
-def run_gpt3_model(dataset, num, model_version, labels_version, testing_file, output_file):
+def run_gpt3_model(dataset, num, model_version, labels_version, testing_file, output_file, scenario):
     """run num of tests on gpt3.
     model_version defines model settings
     dataset amd labels_version defines the data and labels information"""
@@ -13,10 +13,11 @@ def run_gpt3_model(dataset, num, model_version, labels_version, testing_file, ou
                  model_version=model_version,
                  testing_file=testing_file,
                  output_path=output_file,
-                 labels_version=labels_version)
+                 labels_version=labels_version,
+                 scenario=scenario)
 
 
-def run_parsing_model(dataset, num, model_version, labels_version, testing_file, output_file):
+def run_parsing_model(dataset, num, model_version, labels_version, testing_file, output_file, scenario):
     """run num of tests on parsing model.
     model_version defines model settings
     dataset amd labels_version defines the data and labels information"""
@@ -25,14 +26,16 @@ def run_parsing_model(dataset, num, model_version, labels_version, testing_file,
                   model_version=model_version,
                   dataset=dataset,
                   output_file=output_file,
-                  labels_version=labels_version)
+                  labels_version=labels_version,
+                  scenario=scenario)
 
 
-def run_pretrain_model(dataset, model_version, labels_version, output_file):
+def run_pretrain_model(dataset, model_version, labels_version, output_file, scenario):
     """run num of tests on pre-train model.
     model_version defines model hyper-parameters and tokenizer information etc.
     dataset amd labels_version defines the data and labels information, also decides which model to load"""
     mt_testing(dataset=dataset,
-                     model_version=model_version,
-                     labels_version=labels_version,
-                     output_file=output_file)
+               model_version=model_version,
+               labels_version=labels_version,
+               output_file=output_file,
+               scenario=scenario)
