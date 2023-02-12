@@ -108,23 +108,6 @@ def get_labels_ts_stdgts(testing_file, num, do_shuffle=False):
     return labels, ts, std_gts
 
 
-# todo: usage of this function
-def get_example_keyword_pair(labels_version, num, data_type, do_shuffle=False):
-    text, labels = get_samples(file_path, model_name, num, do_shuffle)
-    outputs = []
-    for i, label in enumerate(labels):
-        text_split = text[i].split(' ')
-        output = ""
-        # todo: merge the same label together
-        label_tok = label.split(',')
-        for idx, tok in enumerate(label_tok):
-            if tok != 'O':
-                output = output + text_split[idx] + ':' + tok + ";"
-        print(f"[get_example_keyword_pair]\n{i}th text {text_split[i]}\noutput {output}")
-        outputs.append(output)
-    return text, outputs
-
-
 def construct_zeroshot_prompt(prompt, sentence):
     """return the constructed prompt and stop sequence"""
     if prompt == "PROMPT_3":
