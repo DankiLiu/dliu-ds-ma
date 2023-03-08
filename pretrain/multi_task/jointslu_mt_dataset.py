@@ -111,7 +111,7 @@ class MTDataset(Dataset):
 
     @classmethod
     def create_data(cls, dataset, labels_version, scenario, split: DatasetSplitName,
-                    tokenizer: Tokenizer, few_shot):
+                    tokenizer: Tokenizer, few_shot_num):
         # load labels_dict
         intents_dict = get_intents_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
         labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
@@ -119,10 +119,12 @@ class MTDataset(Dataset):
 
         path = None
         if split == 'train':
-            if few_shot:
-                path = data_folder + "few_train.json" if not dataset == "massive" else data_folder + scenario + "_few_train.json"
+            if few_shot_num != -1 and few_shot_num is not None:
+                path = data_folder + few_shot_num + "train.json" if not dataset == "massive" \
+                    else data_folder + scenario + str(few_shot_num) + "train.json"
             else:
-                path = data_folder + "train.json" if not dataset == "massive" else data_folder + scenario + "_train.json"
+                path = data_folder + "train.json" if not dataset == "massive" \
+                    else data_folder + scenario + "_train.json"
         elif split == 'test':
             path = data_folder + "test.json" if not dataset == "massive" else data_folder + scenario + "_test.json"
         elif split == 'val':

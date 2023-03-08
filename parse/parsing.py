@@ -53,6 +53,8 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle,
     print("parsed phrases length: ", len(parsed_phrases))
     print("num: ", num)
     assert len(utexts) == len(ulabels) == len(parsed_phrases)
+    if num < 0:
+        num = len(utexts)
     # load bert for similarity
     sbert = sbert_model()
     # get labels by labels_version
@@ -99,12 +101,6 @@ def parsing(testing_file, num, dataset, output_file, labels_version, do_shuffle,
         results.append(result)
     append_to_json(file_path=output_file, new_data=results)
     print(f"    [parsing] {len(results)} results appended to parsing_output.json")
-
-
-def evaluation(num=1, shuffle=True, pos=True, ner=True):
-    """Evaluate parsing with all labels"""
-    # read results from file and evaluate the parsing method
-    pass
 
 
 def f1_score(prediction: List, labels: List, mapping: dict):

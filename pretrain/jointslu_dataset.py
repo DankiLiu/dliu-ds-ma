@@ -89,9 +89,9 @@ class JointSluDataset(Dataset):
 
     @classmethod
     def create_data(cls, dataset, labels_version, split: DatasetSplitName,
-                    tokenizer: Tokenizer):
+                    tokenizer: Tokenizer, scenario):
         # load labels_dict
-        labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version)
+        labels_dict = get_labels_dict(dataset=dataset, labels_version=labels_version, scenario=scenario)
         data_folder = "data/" + dataset + "/training_data/labels" + labels_version
         path = None
         # todo: if path not exist, construct training data. or need I?

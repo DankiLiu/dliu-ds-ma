@@ -114,33 +114,35 @@ def get_labels_ts_phrases(testing_file, num, do_shuffle):
     some phrase results can not be used, sample new ones util the num is reached
     """
     utexts, ulabels, uintents, parsed_phrases, intent_phrases = [], [], [], [], []
-    while len(utexts) < num:
-        parse_by_num(testing_file=testing_file,
-                     num=num,
-                     utexts=utexts, ulabels=ulabels, uintents=uintents,
-                     parsed_phrases=parsed_phrases,
-                     intent_phrases=intent_phrases,
-                     do_shuffle=do_shuffle)
-    return utexts, ulabels, uintents, parsed_phrases, intent_phrases
 
-
-def parse_by_num(testing_file, num, utexts, ulabels, uintents, parsed_phrases, intent_phrases, do_shuffle):
-    """add legal result to utexts, ulabels, parsed_phrases, intent_phrases"""
-    if len(utexts) != 0:
-        # if already sampled but num not satisfied, randomly sample square num of the missing samples
-        num = (num - len(utexts)) ** 2
-        do_shuffle = True
     texts, labels, intents = get_samples(file_path=testing_file,
                                          model_name="parsing",
                                          num=num,
                                          do_shuffle=do_shuffle)
+    if num < 0:
+        num = len(texts)
+    while len(utexts) < num:
+        parse_by_num(num=num,
+                     texts=texts, labels=labels, intents=intents,
+                     utexts=utexts, ulabels=ulabels, uintents=uintents,
+                     parsed_phrases=parsed_phrases,
+                     intent_phrases=intent_phrases)
+    return utexts, ulabels, uintents, parsed_phrases, intent_phrases
+
+
+def parse_by_num(num, texts, labels, intents, utexts, ulabels, uintents, parsed_phrases, intent_phrases):
+    """add legal result to utexts, ulabels, parsed_phrases, intent_phrases"""
+    if len(utexts) != 0:
+        # if already sampled but num not satisfied, randomly sample square num of the missing samples
+        num = (num - len(utexts)) ** 2
+
     print(f"     [parse_by_num] num of texts {len(texts)}, texts and labels are lists of words/tokens")
     dep_result, _, ner_result = parse_samples(texts)
     for ith_exp in range(len(texts)):
         num_evaluated = len(utexts)
         if num == num_evaluated:
             # if enough number of parsed samples, return, otherwise sample
-            return utexts, ulabels, parsed_phrases
+            return
         assert len(texts[ith_exp]) == len(labels[ith_exp])
         dp_graph = dep_result[ith_exp]
         ner_labels = ner_result[ith_exp]

@@ -49,6 +49,54 @@
       "cls_token": "BOS",
       "checkpoint": "/mt_v1/jointslu_lv01",
       "comment": "multi-task bert"
+    },
+    {
+      "version": 2,
+      "lr": 2.9908676527677725e-05,
+      "max_epoch": 3,
+      "tokenizer": "bert-base-uncased",
+      "batch_size": 1,
+      "do_lower_case": "True",
+      "sep_token": "EOS",
+      "cls_token": "BOS",
+      "checkpoint": "/pretrain/mt_v1/massive_lv00_alarm_cl_few",
+      "comment": "multi-task bert, massive-alarm, few-train(15)"
+    },
+      {
+      "version": 3,
+      "lr": 2.9908676527677725e-05,
+      "max_epoch": 3,
+      "tokenizer": "bert-base-uncased",
+      "batch_size": 1,
+      "do_lower_case": "True",
+      "sep_token": "EOS",
+      "cls_token": "BOS",
+      "checkpoint": "/pretrain/mt_v1/massive_lv00_alarm_cl",
+      "comment": "multi-task bert, massive-alarm (390+64)"
+    },
+    {
+      "version": 4,
+      "lr": 2.9908676527677725e-05,
+      "max_epoch": 4,
+      "tokenizer": "bert-base-uncased",
+      "batch_size": 1,
+      "do_lower_case": "True",
+      "sep_token": "EOS",
+      "cls_token": "BOS",
+      "checkpoint": "/pretrain/mt_from_v1/massive_lv00_alarm_cl_50",
+      "comment": "multi-task bert, fintune classifier from v1 massive-alarm (50+64)"
+    },
+      {
+      "version": 5,
+      "lr": 2.9908676527677725e-05,
+      "max_epoch": 4,
+      "tokenizer": "bert-base-uncased",
+      "batch_size": 1,
+      "do_lower_case": "True",
+      "sep_token": "EOS",
+      "cls_token": "BOS",
+      "checkpoint": "/pretrain/mt_from_v1/massive_lv00_alarm_cl_100",
+      "comment": "muti-task bert, fintune classifier from v1 massive-alarm (100+64)"
     }
   ]
 }

@@ -45,11 +45,13 @@ def generate_ori_with_scenario(scenario):
     import csv
     with open("data/massive/labels/" + scenario + "_intents00.csv", 'w+') as f:
         csv_writer = csv.writer(f)
+        csv_writer.writerow(["ori", "sim"])
         for intent in intents:
             csv_writer.writerow([intent])
 
     with open("data/massive/labels/" + scenario + "_labels00.csv", 'w+') as f:
         csv_writer = csv.writer(f)
+        csv_writer.writerow(["ori", "sim"])
         for label in labels:
             csv_writer.writerow([label])
 

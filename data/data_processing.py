@@ -75,7 +75,7 @@ def traversal_intent(file_path):
     intents = list(set([item["intent"] for item in data]))
     print(f"found {len(intents)} intents: \n{intents}")
     df = pd.DataFrame({"ori": intents})
-    df.to_csv('data/jointslu/labels/intents01.csv', index=False)
+    df.to_csv('data/jointslu/labels/intents02.csv', index=False)
 
 
 def labels_csv_to_json(file_path):
@@ -327,30 +327,37 @@ def get_simplified_labels(oris: List, ori_sim_dict):
     return labels
 
 
-def check_training_data(dataset, labels_version, scenario, few_shot):
+def check_training_data(dataset, labels_version, scenario, few_shot_num):
     """check whether data files are ready and return the paths,
     if not, construct new data according to dataset and labels_version,
     if dataset == massive, scenario should not be empty"""
-    folder_path = "data/" + dataset + "/training_data/labels" + labels_version
+    folder_path = "data/" + dataset + "/training_data/labels" + labels_version + "/"
     print(f"[check_training_data]\nlv{labels_version}: training data should be stored in {folder_path}")
     train_p, test_p, val_p = "", "", ""
     if dataset == "jointslu":
-        train_p = folder_path + "/" + "train.json" if not few_shot else folder_path + "/" + "few_train.json"
-        test_p = folder_path + "/" + "test.json"
-        val_p = folder_path + "/" + "val.json"
+        if few_shot_num != -1:
+            train_p = folder_path + str(few_shot_num) + "train.json"
+        else:
+            train_p = folder_path + "train.json"
+        test_p = folder_path + "test.json"
+        val_p = folder_path + "val.json"
     elif dataset == "massive":
-        train_p = folder_path + "/" + scenario + "_train.json" if not few_shot else folder_path + "/" + scenario + "_few_train.json"
-        test_p = folder_path + "/" + scenario + "_test.json"
-        val_p = folder_path + "/" + scenario + "_val.json"
+        if few_shot_num != -1:
+            train_p = folder_path + scenario + str(few_shot_num) + "train.json"
+        else:
+            train_p = folder_path + scenario + "_train.json"
+        test_p = folder_path + scenario + "_test.json"
+        val_p = folder_path + scenario + "_val.json"
 
     # if folder path exist and not empty, then the data exists and return True
     if not os.path.isdir(folder_path):
         os.mkdir(folder_path)
     if not os.path.exists(train_p):
-        if few_shot:
-            construct_few_shot_training_data(dataset=dataset,
-                                             labels_version=labels_version,
-                                             scenario=scenario)
+        if few_shot_num != -1:
+            construct_few_shot_by_num(dataset=dataset,
+                                      labels_version=labels_version,
+                                      scenario=scenario,
+                                      few_shot_num=few_shot_num)
         else:
             construct_training_data(dataset=dataset,
                                     data_type="train",
@@ -364,6 +371,28 @@ def check_training_data(dataset, labels_version, scenario, few_shot):
                                     labels_version=labels_version,
                                     scenario=scenario)
     return train_p, test_p, val_p
+
+
+def construct_few_shot_by_num(dataset, labels_version, scenario, few_shot_num):
+    # few-shot data is only for training
+    path, new_path = "", ""
+    if dataset == "massive":
+        path = "data/massive/training_data/" + scenario + "_train.json"
+        new_path = "data/massive/training_data/labels" + labels_version + "/" + scenario + str(few_shot_num) + "train.json"
+    if dataset == "jointslu":
+        path = "data/jointslu/training_data/train.json"
+        new_path = "data/jointslu/training_data/labels" + labels_version + "/" + str(few_shot_num) + "train.json"
+
+    file = open(path, 'r')
+    ori_data = json.load(file)
+    all_new_data = simplify_labels_intent(ori_data, dataset, labels_version, scenario)
+    from random import shuffle
+    shuffle(all_new_data)
+
+    n_shots = all_new_data[:few_shot_num]
+    with open(new_path, 'w+') as f:
+        json.dump(n_shots, f, indent=4)
+        f.close()
 
 
 def construct_few_shot_training_data(dataset, labels_version, scenario):
@@ -527,7 +556,7 @@ def get_samples(file_path, model_name, num, do_shuffle):
     import json
     from random import shuffle
     data = json.load(f)
-    length = len(data) if num == 0 else num
+    length = len(data) if num < 0 else num
     if do_shuffle:
         shuffle(data)
     intent = [i["intent"] for i in data[0:length]]

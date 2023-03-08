@@ -73,6 +73,7 @@ def process_data_to_kv_pairs(loaded_data_dict):
     """given loaded data dictionary, return key-value pairs"""
     # todo: this function can use yield to be more efficient
     kv_pairs_dict = {}
+    print(loaded_data_dict)
     for model_name, data in loaded_data_dict.items():
         std_gts, predictions = data["std_gts"], data["predictions"]
         gt_kv_pairs = [str_to_kv_pairs(string) for string in std_gts]

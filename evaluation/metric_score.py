@@ -81,13 +81,13 @@ class MetricByModel(Metric):
         # read model name, num, metrics from file and create a MetricByModel instance
         import pandas as pd
         df = pd.read_csv(path)  # read whole file
-        df_model = df.loc[df['model_name'] == model_name]   # df rows of given model name
-
-        num = df_model.iloc[0]["num"]
+        df_model = df.loc[df['model_name'] == model_name].mean(axis=0)   # df rows of given model name
+        print(f"df_model after mean {df_model}")
+        num = df_model["num"]
         print(f"this file contains metrics with {num} examples")
-        cor = df_model.iloc[0]["correct"]
-        par = df_model.iloc[0]["partial"]
-        inc = df_model.iloc[0]["incorrect"]
-        mis = df_model.iloc[0]["missing"]
-        spu = df_model.iloc[0]["spurious"]
+        cor = df_model["correct"]
+        par = df_model["partial"]
+        inc = df_model["incorrect"]
+        mis = df_model["missing"]
+        spu = df_model["spurious"]
         return cls(model_name, num, [cor, par, inc, mis, spu])

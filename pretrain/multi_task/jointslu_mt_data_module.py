@@ -5,7 +5,7 @@ from pretrain.multi_task.jointslu_mt_dataset import MTDataset
 
 
 class MTDataModule(pl.LightningDataModule):
-    def __init__(self, dataset, labels_version, scenario, tokenizer, train_bsz=1, test_bsz=1, few_shot=False):
+    def __init__(self, dataset, labels_version, scenario, tokenizer, train_bsz=1, test_bsz=1, few_shot_num=-1):
         super().__init__()
         self.dataset = dataset
         self.labels_version = labels_version
@@ -15,7 +15,7 @@ class MTDataModule(pl.LightningDataModule):
         self.train_dataset, self.val_dataset, self.test_dataset = \
             None, None, None
         self.tokenizer = tokenizer
-        self.few_shot = few_shot
+        self.few_shot_num = few_shot_num
 
     def _create_data(self, split):
         data = MTDataset.create_data(
@@ -24,7 +24,7 @@ class MTDataModule(pl.LightningDataModule):
             self.scenario,
             split,
             self.tokenizer,
-            self.few_shot
+            self.few_shot_num
         )
         return data
 

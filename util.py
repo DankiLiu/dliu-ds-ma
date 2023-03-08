@@ -108,16 +108,10 @@ def find_ckpt_in_dir(checkpoint):
     if len(ckpt_files) == 1:
         return ckpt_files[0]
     elif len(ckpt_files) > 1:
-        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}")
+        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}\n")
         return ckpt_files[int(ckpt_index)]
     else:
         return None
-
-
-def get3output_paths(dataset, parsing_v, pretrain_v, gpt3_v):
-    return get_output_path("parsing", dataset, parsing_v), \
-           get_output_path("pre-train", dataset, pretrain_v), \
-           get_output_path("gpt3", dataset, gpt3_v)
 
 
 def get_output_path(model_name, dataset, model_version, scenario):

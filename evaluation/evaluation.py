@@ -31,7 +31,7 @@ RESULTS_TYPES = ["equal", "under", "over", "mismatch", "mis", "spu", "non"]
 MATCHING_TYPES = ["correct", "partial", "incorrect", "missing", "spurious"]
 
 
-def model_evaluation(dataset, sample_num, bylabel, labels_version):
+def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, model, num_experiment):
     """evaluate three approaches with num examples and store the result in results folder
     dataset: name of the dataset
     sample_num: number of samples to be evaluated
@@ -41,41 +41,47 @@ def model_evaluation(dataset, sample_num, bylabel, labels_version):
     #  see the result first, would not be difficult to add
     # load data (std_prediction and std_gt) from the most recent output files, raise exception if not enough examples
     print("load data dict")
-    loaded_data_dict = load_data_from_latest(dataset, sample_num)
-    print("process data to kv pairs")
-    kv_pairs_dict = process_data_to_kv_pairs(loaded_data_dict)
-    # todo: evaluation by labels: two kinds of labels, intents and tok_labels
-    #   need to differentiate them? temp not to
-    if bylabel:
-        print("eval by label")
-        # intent and tok_labels
-        labels = get_intents_labels_keys(dataset, labels_version)
-        entries = evaluate_models_by_labels(kv_pairs_dict, labels)
-        # todo: store all entries to a csv file
-        #   columns of csv file:
-        #   "model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"
-        #   acc and f-scores will be calculated from these entries
-        # store metrics under folder dataset/bylabel/
-        folder = "evaluation/" + dataset + "/bylabel/"
-        # name file with labels_version, samples number and number per label
-        file_name = "lv" + str(labels_version) + "_s" + str(sample_num) + ".csv"
-        f = open(folder + file_name, 'w+')
-        header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
-        df = pd.DataFrame(entries, columns=header)
-        df.to_csv(f)
-        # dict_writer = csv.DictWriter(f, header)
-        # dict_writer.writerows(entries)
-    else:
-        print("eval by model")
-        # calculate metrics of all labels in the sample
-        entries = evaluate_models(kv_pairs_dict)
-        folder = "evaluation/" + dataset + "/bymodel/"
-        # name file with labels_version, samples number and number per label
-        file_name = "lv" + str(labels_version) + "_s" + str(sample_num)  + ".csv"
-        f = open(folder + file_name, 'w+')
-        header = ["model_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
-        dict_writer = csv.DictWriter(f, header)
-        dict_writer.writerows(entries)
+    all_entries = []
+    for i in range(num_experiment):
+        loaded_data_dict = load_data_from_latest_model(dataset, sample_num, model)
+        kv_pairs_dict = process_data_to_kv_pairs(loaded_data_dict)
+
+        if bylabel:
+            print("eval by label")
+            # intent and tok_labels
+            labels = get_intents_labels_keys(dataset, labels_version, scenario)
+            entries = evaluate_models_by_labels(kv_pairs_dict, labels)
+            # todo: store all entries to a csv file
+            #   columns of csv file:
+            #   "model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"
+            #   acc and f-scores will be calculated from these entries
+            all_entries = all_entries + entries
+        else:
+            print("eval by model")
+            # calculate metrics of all labels in the sample
+            entries = evaluate_models(kv_pairs_dict)
+            all_entries = all_entries + entries
+
+    # save to file
+    file = get_file_name("bylabel", dataset, labels_version, sample_num, model, num_experiment) \
+        if bylabel else get_file_name("bymodel", dataset, labels_version, sample_num, model, num_experiment)
+    f = open(file, 'w+')
+    # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+    header = list(all_entries[0].keys())
+    df = pd.DataFrame(all_entries, columns=header)
+    df.to_csv(f)
+
+
+def get_file_name(type, dataset, labels_version, sample_num, model, num_experiment):
+    file_index = 0
+    folder_name = "evaluation/" + model + "/" + dataset + "/" + type + "/e" + str(num_experiment)
+    file_name = "lv" + labels_version + "_n" + str(sample_num) + "_i" + str(file_index) + ".csv"
+    import os
+    while os.path.exists(folder_name + file_name):
+        file_index += 1
+        file_name = "lv" + labels_version + "_n" + str(sample_num) + "_i" + str(file_index) + ".csv"
+    print("entries stored in: ", folder_name + file_name)
+    return folder_name + file_name
 
 
 def evaluate_models(kv_pairs_dict):
@@ -142,9 +148,9 @@ def evaluate_models_by_labels(kv_pairs_dict, labels):
                                 f"less than {num}, please given an other num for evaluation")
             """
             num_evaluated, sample_index, metrics = get_metrics_label(gt_kv_pairs=kv_pairs["gt_kv_pairs"],
-                                        pd_kv_pairs=kv_pairs["pd_kv_pairs"],
-                                        label_name=label)
-            print(f"[evaluate_models_by_labels] get metrics {metrics}")
+                                                                     pd_kv_pairs=kv_pairs["pd_kv_pairs"],
+                                                                     label_name=label)
+            # print(f"[evaluate_models_by_labels] get metrics {metrics}")
             metrics_dict = dict(zip(MATCHING_TYPES, metrics))
             entry = {
                 "model_name": model_name,
@@ -154,7 +160,7 @@ def evaluate_models_by_labels(kv_pairs_dict, labels):
             }
             entry.update(metrics_dict)
             entries.append(entry)
-            print("entries keys", entry.keys())
+            # print("entries keys", entry.keys())
     return entries
 
 
@@ -165,7 +171,8 @@ def get_metrics_label(gt_kv_pairs, pd_kv_pairs, label_name):
     # if label exists in the example, then evaluate, util num is reached
     num_evaluated = 0
     sample_index = 0
-    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs, pd_kv_pairs):  # if evaluated samples number is less than num, continue to evaluate
+    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs,
+                                      pd_kv_pairs):  # if evaluated samples number is less than num, continue to evaluate
         if not contains_label(gt_kv_pair, pd_kv_pair, label_name):  # if label is not a key in the sample, skip
             sample_index += 1
             continue
@@ -182,6 +189,7 @@ def get_metrics_label(gt_kv_pairs, pd_kv_pairs, label_name):
 def load_data_from_latest(dataset, num):
     model_names = ["parsing", "pre-train", "gpt3"]
     latest_files = [find_latest_output_files(model, dataset) for model in model_names]
+    print(f"[output file]: {latest_files} ")
     # check each file for num of examples, if less than given num, raise error
     loaded = []
     for i, model_name in enumerate(model_names):
@@ -204,6 +212,29 @@ def load_data_from_latest(dataset, num):
     return dict(zip(model_names, loaded))
 
 
+def load_data_from_latest_model(dataset, num, model):
+    latest_files = find_latest_output_files(model, dataset)
+    print(f"[output file for {model}]: {latest_files} ")
+    # check each file for num of examples, if less than given num, raise error
+    loaded = {}
+    with open(latest_files, 'r') as f:
+        data = json.load(f)
+        num = len(data) if num < 0 else num
+        if len(data) < num:
+            raise Exception(f"number of examples in {model} output file is {len(data)}, less than {num}")
+        else:
+            from random import shuffle
+            shuffle(data)
+            gt_key = "std_gt"
+            prediction_key = "prediction" if model == "gpt3" else "std_output"
+            loaded = {
+                "std_gts": [item[gt_key] for item in data[:num]],
+                "predictions": [item[prediction_key] for item in data[:num]]
+            }
+        f.close()
+    return {model: loaded}
+
+
 def find_latest_output_files(model, dataset):
     """load the most recent output file from each approach"""
     # todo: this is a temporary solution (how to find output file?)
@@ -213,27 +244,6 @@ def find_latest_output_files(model, dataset):
     list_of_files = glob.glob(output_folder + '*.json')
     latest_file = max(list_of_files, key=os.path.getctime)
     return latest_file
-
-
-# matching_type = enumerate(["equal", "under", "over", "mismatch", "mis", "spu"])
-def acc_f1_by_label(model_name, label_name, is_loose, bylabel_path):
-    """calculate acc and f1 of all given models for all given models, the metrics path is given"""
-    # find entries in file that contain model_name, label_name, should be only one entry in one file
-    df = pd.read_csv(bylabel_path)
-    model_df = df.loc[(df["model_name"] == model_name) & (df["label_name"] == label_name)]
-    # read metrics from file
-    for index, row in model_df.iterrows():
-        num_of_example = row["num"]
-        cor, par, inc, mis, spu = row["cor"] / counter, row["par"] / counter, \
-                                  row["inc"] / counter, row["mis"] / counter, row["spu"] / counter
-        muc = MUC5(cor, par, inc, mis, spu)
-        acc, f1 = muc.acc, muc.f
-        accs.append(acc)
-        f1s.append(f1)
-    # calculate acc and f1 given is_loose
-    # return the acc and f1
-    # todo: what to do with the sample num and num column
-    pass
 
 
 def acc_f1_by_model(model_name, is_loose, bymodel_path):
@@ -300,7 +310,6 @@ def evaluate_acc_f1(model_name, label_name, is_loose, file_path):
                 f.close()
     else:
         print(f"no entry met [{model_name}, {label_name}]")
-
 
 
 def get_matching_type(gt_kv_pair, pd_kv_pair, label):

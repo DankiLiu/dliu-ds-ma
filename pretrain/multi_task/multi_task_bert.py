@@ -5,7 +5,7 @@ from transformers import BertModel
 
 
 class MultiTaskBert(torch.nn.Module):
-    def __init__(self, tokenizer, encoder_name, tasks: List, classifier_only):
+    def __init__(self, tokenizer, encoder_name, tasks: List):
         super().__init__()
         self.encoder = BertModel.from_pretrained(encoder_name)
 
@@ -16,9 +16,6 @@ class MultiTaskBert(torch.nn.Module):
 
         self.tokenizer = tokenizer
         self.encoder.resize_token_embeddings(len(self.tokenizer))
-        if classifier_only:
-            for param in self.encoder.parameters():
-                param.requires_grad = False
 
     def set_output_heads(self, tasks):
         for task in tasks:
