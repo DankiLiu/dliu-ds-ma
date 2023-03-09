@@ -22,7 +22,7 @@ the format and output of models should be the same for different models and diff
 import csv, json
 import pandas as pd
 
-from data.data_processing import get_intents_labels_keys
+from data.data_processing import get_intents_labels_keys, get_intents_dict, get_labels_dict
 from evaluation.evaluation_utils import process_data_to_kv_pairs
 from evaluation.muc5 import MUC5
 from util import get_output_folder
@@ -42,20 +42,22 @@ def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, mod
     # load data (std_prediction and std_gt) from the most recent output files, raise exception if not enough examples
     print("load data dict")
     all_entries = []
+    intent_entries, slot_entries = [], []
     for i in range(num_experiment):
         loaded_data_dict = load_data_from_latest_model(dataset, sample_num, model)
         kv_pairs_dict = process_data_to_kv_pairs(loaded_data_dict)
 
         if bylabel:
-            print("eval by label")
-            # intent and tok_labels
-            labels = get_intents_labels_keys(dataset, labels_version, scenario)
-            entries = evaluate_models_by_labels(kv_pairs_dict, labels)
-            # todo: store all entries to a csv file
-            #   columns of csv file:
-            #   "model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"
-            #   acc and f-scores will be calculated from these entries
-            all_entries = all_entries + entries
+            print("eval by label, evaluate slots")
+            # slot labels
+            labels = get_labels_dict(dataset, labels_version, scenario).keys()
+            s_entries = evaluate_models_by_labels(kv_pairs_dict, labels)
+            slot_entries = slot_entries + s_entries
+            print("eval by label, evaluate slots")
+            intents = get_intents_dict(dataset, labels_version, scenario).keys()
+            print(intents)
+            i_entries = evaluate_models_by_intents(kv_pairs_dict, intents)
+            intent_entries = intent_entries + i_entries
         else:
             print("eval by model")
             # calculate metrics of all labels in the sample
@@ -63,13 +65,30 @@ def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, mod
             all_entries = all_entries + entries
 
     # save to file
-    file = get_file_name("bylabel", dataset, labels_version, sample_num, model, num_experiment) \
-        if bylabel else get_file_name("bymodel", dataset, labels_version, sample_num, model, num_experiment)
-    f = open(file, 'w+')
-    # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
-    header = list(all_entries[0].keys())
-    df = pd.DataFrame(all_entries, columns=header)
-    df.to_csv(f)
+    if bylabel:
+        # save intent and slot to separate files
+        intent_file = get_file_name("intent", dataset, labels_version, sample_num, model, num_experiment)
+        f = open(intent_file, 'w+')
+        # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+        header = list(intent_entries[0].keys())
+        df = pd.DataFrame(intent_entries, columns=header)
+        df.to_csv(f)
+        f.close()
+        slot_file = get_file_name("slot", dataset, labels_version, sample_num, model, num_experiment)
+        f = open(slot_file, 'w+')
+        # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+        header = list(slot_entries[0].keys())
+        df = pd.DataFrame(slot_entries, columns=header)
+        df.to_csv(f)
+        f.close()
+    else:
+        file = get_file_name("bymodel", dataset, labels_version, sample_num, model, num_experiment)
+        f = open(file, 'w+')
+        # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
+        header = list(all_entries[0].keys())
+        df = pd.DataFrame(all_entries, columns=header)
+        df.to_csv(f)
+        f.close()
 
 
 def get_file_name(type, dataset, labels_version, sample_num, model, num_experiment):
@@ -129,6 +148,30 @@ def get_example_matching_type(gt_kv_pair, pd_kv_pair):
     return example_matching_types
 
 
+def evaluate_models_by_intents(kv_pairs_dict, intents):
+    entries = []
+    # check label num occurrences
+    for model_name, kv_pairs in kv_pairs_dict.items():
+        print(f"[evaluate_models_by_labels] model_name: {model_name}")
+        for intent in intents:
+            print(f"evaluate intent - {intent}")
+            num_evaluated, sample_index, metrics = get_metrics_intent(gt_kv_pairs=kv_pairs["gt_kv_pairs"],
+                                                                      pd_kv_pairs=kv_pairs["pd_kv_pairs"],
+                                                                      intent_name=intent)
+            # print(f"[evaluate_models_by_labels] get metrics {metrics}")
+            metrics_dict = dict(zip(MATCHING_TYPES, metrics))
+            entry = {
+                "model_name": model_name,
+                "label_name": intent,
+                "sample_num": sample_index,
+                "num": num_evaluated
+            }
+            entry.update(metrics_dict)
+            entries.append(entry)
+            # print("entries keys", entry.keys())
+    return entries
+
+
 def evaluate_models_by_labels(kv_pairs_dict, labels):
     """return metrics results of all three approaches evaluating all given label,
     if occurrences of label is less than num, require new num
@@ -140,13 +183,6 @@ def evaluate_models_by_labels(kv_pairs_dict, labels):
     for model_name, kv_pairs in kv_pairs_dict.items():
         print(f"[evaluate_models_by_labels] model_name: {model_name}")
         for label in labels:
-            """
-            num_of_occ = label_num_occurrences(kv_pairs["gt_kv_pairs"], kv_pairs["pd_kv_pairs"], label)
-            print("[evaluate_models_by_labels] check number of occurrences")
-            if num_of_occ < num:
-                raise Exception(f"label {label} of {model_name} has only {num_of_occ} occurrences, "
-                                f"less than {num}, please given an other num for evaluation")
-            """
             num_evaluated, sample_index, metrics = get_metrics_label(gt_kv_pairs=kv_pairs["gt_kv_pairs"],
                                                                      pd_kv_pairs=kv_pairs["pd_kv_pairs"],
                                                                      label_name=label)
@@ -164,6 +200,28 @@ def evaluate_models_by_labels(kv_pairs_dict, labels):
     return entries
 
 
+def get_metrics_intent(gt_kv_pairs, pd_kv_pairs, intent_name):
+    metrics = [0, 0, 0, 0, 0]
+    # if label exists in the example, then evaluate, util num is reached
+    num_evaluated = 0
+    sample_index = 0
+    for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs,
+                                      pd_kv_pairs):  # if evaluated samples number is less than num, continue to evaluate
+        if not contains_intent(gt_kv_pair, pd_kv_pair, intent_name):
+            print(f"[get metrics label]: {intent_name} not in gt and pd")
+            sample_index += 1
+            continue
+        else:
+            print(f"[get metrics label]: get {intent_name} metrics")
+            matching_type_index = get_matching_type_intent(gt_kv_pair=gt_kv_pair,
+                                                           pd_kv_pair=pd_kv_pair,
+                                                           intent=intent_name)
+            metrics[matching_type_index] += 1
+            num_evaluated += 1
+            sample_index += 1
+    return num_evaluated, sample_index, metrics
+
+
 def get_metrics_label(gt_kv_pairs, pd_kv_pairs, label_name):
     """:return metrics, a list of scores evaluated label, metrics counts the matching types of num of samples contains
     the label_name"""
@@ -173,13 +231,17 @@ def get_metrics_label(gt_kv_pairs, pd_kv_pairs, label_name):
     sample_index = 0
     for gt_kv_pair, pd_kv_pair in zip(gt_kv_pairs,
                                       pd_kv_pairs):  # if evaluated samples number is less than num, continue to evaluate
-        if not contains_label(gt_kv_pair, pd_kv_pair, label_name):  # if label is not a key in the sample, skip
+
+        if not contains_label(gt_kv_pair, pd_kv_pair, label_name):
+            # print(f"[get metrics intent]: {label_name} not in gt and pd")
             sample_index += 1
             continue
-        else:  # evaluate if label exists
+        else:
+            print(f"[get metrics label]: get {label_name} metrics")
             matching_type_index = get_matching_type(gt_kv_pair=gt_kv_pair,
                                                     pd_kv_pair=pd_kv_pair,
                                                     label=label_name)
+
             metrics[matching_type_index] += 1
             num_evaluated += 1
             sample_index += 1
@@ -312,6 +374,41 @@ def evaluate_acc_f1(model_name, label_name, is_loose, file_path):
         print(f"no entry met [{model_name}, {label_name}]")
 
 
+def get_matching_type_intent(gt_kv_pair, pd_kv_pair, intent):
+    """
+    :return integer that represents a matching type of given example (given gt and pd kv pairs)
+    matching types: correct, partial, incorrect, missing, spurious = 0, 1, 2, 3, 4
+    comparison types: equal, under, over, mismatch, mis, spu, non = 0, 1, 2, 3, 4, 5, 6
+    """
+    keys = list(set(list(pd_kv_pair.keys()) + list(gt_kv_pair.keys())))  # merge keys, get a list of all keys
+    # get both intent, and compare the value -> cor, par, inc
+    # p intent is empty mis
+    gt_intent = gt_kv_pair["intent"]
+    p_intent = pd_kv_pair["intent"]
+    if intent in [gt_intent, p_intent]:
+        result_of_comparison = 0
+        if gt_intent and p_intent:  # if both contain the label, compare
+            # todo: function to compare p and gt values
+            result_of_comparison = compare_values(gt_value=gt_intent, p_value=p_intent)
+        elif gt_intent and not p_intent:
+            # if gt has the label but prediction does not, it is a miss
+            result_of_comparison = RESULTS_TYPES.index("mis")
+        elif p_intent and not gt_intent:
+            # if the label is predicted but it is not in gt, then it is a spu
+            result_of_comparison = RESULTS_TYPES.index("spu")
+        # return matching_type index w.r.t comparison result
+        if result_of_comparison == 0:
+            return MATCHING_TYPES.index("correct")
+        elif result_of_comparison == 1 or result_of_comparison == 2:
+            return MATCHING_TYPES.index("partial")
+        elif result_of_comparison == 3:
+            return MATCHING_TYPES.index("incorrect")
+        elif result_of_comparison == 4:
+            return MATCHING_TYPES.index("missing")
+        elif result_of_comparison == 5:
+            return MATCHING_TYPES.index("spurious")
+
+
 def get_matching_type(gt_kv_pair, pd_kv_pair, label):
     """
     :return integer that represents a matching type of given example (given gt and pd kv pairs)
@@ -398,3 +495,13 @@ def contains_label(gt_kv_pair, pd_kv_pair, label):
     else:
         keys = list(set(list(gt_kv_pair.keys()) + list(pd_kv_pair.keys())))
         return label in keys
+
+
+def contains_intent(gt_kv_pair, pd_kv_pair, intent):
+    """if label is defined, return whether given example contains label, if not defined, return true"""
+    # todo: why return true if not defined? is that correct?
+    if intent is None:
+        return True
+    else:
+        keys = [gt_kv_pair["intent"], pd_kv_pair["intent"]]
+        return intent in keys

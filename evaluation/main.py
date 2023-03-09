@@ -7,24 +7,33 @@ from evaluation.metric_score import MetricByModel, MetricByLabel
 from evaluation.muc5 import MUC5
 
 
-def evaluate_bylabel(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
+def evaluate_intent(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
     if generate:
+        # generate csv file for 5 muc metrics
         model_evaluation(dataset, sample_num, True, labels_version, scenario, model, num_experiments)
     # get labels
     intents_dict = get_intents_dict(dataset, labels_version, scenario)
-    labels_dict = get_labels_dict(dataset, labels_version, scenario)
     intents = list(intents_dict.keys())
-    labels = list(labels_dict.keys())
 
     # eval intents
-    intents_mucs = calculate_muc_by_labels(intents, dataset, model)
-    labels_mucs = calculate_muc_by_labels(labels, dataset, model)
+    intents_mucs = calculate_muc_by_labels(intents, dataset, model, "intent")
 
     intent_file_name = store_by_label("intent", dataset, labels_version, sample_num, num_experiments, model)
     write_dicts_to_file(intents_mucs, intent_file_name)
 
-    labels_file_name = store_by_label("label", dataset, labels_version, sample_num, num_experiments, model)
-    write_dicts_to_file(labels_mucs, labels_file_name)
+
+def evaluate_slot(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
+    if generate:
+        model_evaluation(dataset, sample_num, True, labels_version, scenario, model, num_experiments)
+    # get labels
+    slot_dict = get_labels_dict(dataset, labels_version, scenario)
+    slots = list(slot_dict.keys())
+
+    # eval intents
+    slots_mucs = calculate_muc_by_labels(slots, dataset, model, "slot")
+
+    labels_file_name = store_by_label("slot", dataset, labels_version, sample_num, num_experiments, model)
+    write_dicts_to_file(slots_mucs, labels_file_name)
 
 
 def store_by_label(label_type, dataset, labels_version, sample_num, num_experiments, model):
@@ -44,10 +53,10 @@ def store_by_label(label_type, dataset, labels_version, sample_num, num_experime
     return folder_name + file_name
 
 
-def calculate_muc_by_labels(labels, dataset, model):
+def calculate_muc_by_labels(labels, dataset, model, mode):
     mucs = []
     for label in labels:
-        metric = load_metric(dataset, mode="bylabel", label=label, model=model)
+        metric = load_metric(dataset, mode=mode, label=label, model=model)
         print(label)
         metric.normalization()
         muc = MUC5(metric.cor, metric.par, metric.inc, metric.mis, metric.spu)
@@ -62,7 +71,9 @@ def calculate_muc_by_labels(labels, dataset, model):
 
 def load_metric(dataset, mode, model, label=None):
     latest_file = get_latest_files(dataset, mode, model)
-    if mode == "bylabel":
+    if mode == "intent":
+        metric = MetricByLabel.create_data_from_file(model_name=model, label_name=label, path=latest_file)
+    elif mode == "slot":
         metric = MetricByLabel.create_data_from_file(model_name=model, label_name=label, path=latest_file)
     else:
         metric = MetricByModel.create_data_from_file(model_name=model, path=latest_file)
