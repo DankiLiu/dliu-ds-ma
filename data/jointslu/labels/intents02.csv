@@ -1,0 +1,23 @@
+ori,sim
+atis_flight_no,flight number
+atis_airline,airline
+atis_airline#atis_flight_no,flight information
+atis_airport,airport
+atis_flight#atis_airfare,flight information
+atis_airfare,airfare
+atis_aircraft#atis_flight#atis_flight_no,flight information
+atis_airfare#atis_flight_time,flight information
+atis_aircraft,aircraft
+atis_flight,flight
+atis_flight_time,flight time
+atis_ground_fare,ground fare
+atis_ground_service,ground service
+atis_ground_service#atis_ground_fare,ground information
+atis_city,city
+atis_distance,distance
+atis_cheapest,cheapest
+atis_meal,meal
+atis_quantity,quantity
+atis_capacity,capacity
+atis_restriction,restriction
+atis_abbreviation,abbreviation

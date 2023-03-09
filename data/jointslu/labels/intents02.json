@@ -1,0 +1,21 @@
+{
+    "ground information": 0,
+    "flight time": 1,
+    "flight": 2,
+    "cheapest": 3,
+    "city": 4,
+    "ground fare": 5,
+    "abbreviation": 6,
+    "capacity": 7,
+    "meal": 8,
+    "airport": 9,
+    "quantity": 10,
+    "flight number": 11,
+    "aircraft": 12,
+    "distance": 13,
+    "ground service": 14,
+    "airfare": 15,
+    "flight information": 16,
+    "airline": 17,
+    "restriction": 18
+}
