@@ -47,14 +47,12 @@ def train_multi_task(model_version, dataset, labels_version, scenario, config):
                                scenario=scenario,
                                tokenizer=tokenizer,
                                few_shot_num=config.few_shot_num)
-    model = None
     if not config.from_ckpt:
         model = LitBertMultiTask(tokenizer=tokenizer, tasks=tasks, classifier_only=config.classifier_only)
         write_params(model, "not_ckpt")
         print(f"multi_task classifier layer hidden size: {model.multi_task_bert.output_heads['0'].hidden_size}, "
           f"{model.multi_task_bert.output_heads['0'].num_labels}, {model.multi_task_bert.output_heads['1'].num_labels}")
-
-    if config.from_ckpt:  # load model from checkpoint
+    else:
         print("load from ckpt")
         trained_model = LitBertMultiTask(tokenizer=tokenizer,
                                          tasks=config.old_task,
@@ -69,7 +67,8 @@ def train_multi_task(model_version, dataset, labels_version, scenario, config):
 
     # log folder naming
     print("set log files")
-    log_folder = "pretrain/mt_from_v" + str(model_version)
+    log_folder = "pretrain/mt_from_v" + str(model_version) if config.from_ckpt \
+        else log_folder = "pretrain/mt_v" + str(model_version)
     name = dataset + "_lv" + str(labels_version)
     if scenario:
         name += "_" + scenario
