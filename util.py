@@ -63,8 +63,10 @@ def get_gpt3_params(version):
     f = open("model_version.json")
     gpt3_data = json.load(f)["gpt3"]
     for item in gpt3_data:
+        print(item)
         if item["version"] == version:
-            return item["w_intent"], item["prompt"], item["model"], item["select"]
+            return item["prompt"], item["model"], item["select"], \
+                   item["withkeys"], item["shuffle"], item["zeroshot"]
     return None, None, None, None
 
 
@@ -87,7 +89,7 @@ def get_pretrain_params(version):
 
 
 def get_pretrain_checkpoint(version):
-    f = open("model_version.json")
+    f = open("model_version.json", 'r')
     parsing_data = json.load(f)["pre-train"]
     for item in parsing_data:
         if item["version"] == version:
@@ -108,7 +110,8 @@ def find_ckpt_in_dir(checkpoint):
     if len(ckpt_files) == 1:
         return ckpt_files[0]
     elif len(ckpt_files) > 1:
-        ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}\n")
+        #ckpt_index = input(f"There are {len(ckpt_files)} files, please input the index\n{ckpt_files}\n")
+        ckpt_index=2
         return ckpt_files[int(ckpt_index)]
     else:
         return None

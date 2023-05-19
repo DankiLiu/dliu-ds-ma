@@ -56,8 +56,7 @@ def test_model(model_name, num, model_version, dataset, labels_version, scenario
                            model_version=model_version,
                            labels_version=labels_version,
                            output_file=output_file,
-                           scenario=scenario,
-                           few_shot_num=few_shot_num)
+                           scenario=scenario)
 
 
 def fintune_bert_from_ckpt(dataset, labels_version, model_version, few_shot_num, scenario):
@@ -65,45 +64,106 @@ def fintune_bert_from_ckpt(dataset, labels_version, model_version, few_shot_num,
     if train_fp is None or test_fp is None or val_fp is None:
         print("data files are missing")
         return
-    old_tasks = define_tasks(dataset="jointslu", labels_version="01", scenario=None)
-    config = Config(classifier_only=True, from_ckpt=True, auto_lr=True, old_task=old_tasks, few_shot_num=few_shot_num)
+    old_tasks = define_tasks(dataset="jointslu", labels_version="02", scenario=None)
+    config = Config(classifier_only=True,
+                    from_ckpt=True,
+                    auto_lr=True,
+                    old_task=old_tasks,
+                    few_shot_num=few_shot_num,
+                    early_stopping=True,
+                    epoch=300,
+                    auto_batch_size=True)
     # if train from checkpoint, train from model_version
     train_multi_task(model_version=model_version, dataset="massive",
                      labels_version="00", scenario=scenario, config=config)
 
 
-def test_three_model(parsing, pretrain, gpt3, num, scenario):
-    # parsing
-    if parsing:
-        test_model(model_name="parsing", num=50, model_version=0,
-                   dataset="massive", labels_version="00", scenario=scenario, few_shot_num=-1)
-    # pre-train
-    if pretrain:
-        test_model(model_name="pre-train", num=50, model_version=5,
-                   dataset="massive", labels_version="00", scenario=scenario, few_shot_num=100)
-    # gpt3
-    if gpt3:
-        test_model(model_name="gpt3", num=50, model_version=1,
-                   dataset="massive", labels_version="00", scenario=scenario, few_shot_num=-1)
+def fintune_bert(dataset, labels_version, model_version, few_shot_num, scenario, early_stopping):
+    train_fp, test_fp, val_fp = check_training_data(dataset, labels_version, scenario, few_shot_num)
+    if train_fp is None or test_fp is None or val_fp is None:
+        print("data files are missing")
+        return
+    config = Config(classifier_only=True,
+                    from_ckpt=False,
+                    auto_lr=True,
+                    old_task=None,
+                    few_shot_num=few_shot_num,
+                    early_stopping=early_stopping,
+                    epoch=300,
+                    auto_batch_size=True)
+    # if train from checkpoint, train from model_version
+    train_multi_task(model_version=model_version, dataset=dataset,
+                     labels_version=labels_version, scenario=scenario, config=config)
 
 
-def evaluate(generate=True):
-    sample_num = 50
-    dataset = "massive"
-    labels_version = "00"
-    scenario = "alarm"
-    evaluate_bymodel(sample_num, dataset, labels_version, generate, scenario)
+def few_shot_from_v2():
+    # store in mt_v7
+    # model_versions = [7.0, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7]
+    num = [-1, 12, 20, 30, 50, 100, 200, 300]
+    for n in num:
+        for i in range(3):
+            fintune_bert_from_ckpt(dataset="massive",
+                                   labels_version="00",
+                                   model_version=2.0,
+                                   few_shot_num=n,
+                                   scenario="alarm")
+
+
+def few_shot():
+    # store in mt_v6
+    model_versions = [6.0, 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7]
+    num = [-1, 12, 20, 30, 50, 100, 200, 300]
+    for n in range(len(model_versions)):
+        for i in range(3):
+            fintune_bert(dataset="massive",
+                         labels_version="00",
+                         model_version=model_versions[n],
+                         few_shot_num=num[n],
+                         scenario="alarm",
+                         early_stopping=True)
 
 
 if __name__ == '__main__':
+    #scenarios = ["alarm", "audio", "iot", "music", "news", "takeaway", "weather"]
+    scenarios = ["alarm"]
     if False:
-        fintune_bert_from_ckpt(dataset="massive",
-                               labels_version="00",
-                               model_version=1,
-                               few_shot_num=-1,
-                               scenario="weather")
-    # exit()
-    # test_three_model()
+        for scenario in scenarios:
+            fintune_bert_from_ckpt(dataset="massive",
+                                   labels_version="00",
+                                   model_version=2.0,
+                                   few_shot_num=-1,
+                                   scenario=scenario)
+    if False:
+        for scenario in scenarios:
+            fintune_bert(dataset="massive",
+                         labels_version="00",
+                         model_version=3.1,
+                         few_shot_num=-1,
+                         scenario=scenario,
+                         early_stopping=True)
 
-    # evaluate()
-    generate_ori_with_scenario("news")
+    if False:
+        few_shot = [300]
+        for num in few_shot:
+            fintune_bert_from_ckpt(dataset="massive",
+                                   labels_version="00",
+                                   model_version=2.0,
+                                   few_shot_num=num,
+                                   scenario="alarm")
+    if False:
+        for i in range(3):
+            fintune_bert(dataset="massive",
+                         labels_version="00",
+                         model_version=6.0,
+                         few_shot_num=300,
+                         scenario="alarm",
+                         early_stopping=True)
+        for i in range(3):
+            fintune_bert(dataset="massive",
+                         labels_version="00",
+                         model_version=6.1,
+                         few_shot_num=-1,
+                         scenario="alarm",
+                         early_stopping=True)
+    few_shot_from_v2()
+    few_shot()

@@ -29,7 +29,7 @@ def run_parsing_model(dataset, num, model_version, labels_version, testing_file,
                   scenario=scenario)
 
 
-def run_pretrain_model(dataset, model_version, labels_version, output_file, scenario, few_shot_num):
+def run_pretrain_model(dataset, model_version, labels_version, output_file, scenario):
     """run num of tests on pre-train model.
     model_version defines model hyper-parameters and tokenizer information etc.
     dataset amd labels_version defines the data and labels information, also decides which model to load"""
@@ -37,5 +37,4 @@ def run_pretrain_model(dataset, model_version, labels_version, output_file, scen
                model_version=model_version,
                labels_version=labels_version,
                output_file=output_file,
-               scenario=scenario,
-               few_shot_num=few_shot_num)
+               scenario=scenario)

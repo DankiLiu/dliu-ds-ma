@@ -31,7 +31,7 @@ RESULTS_TYPES = ["equal", "under", "over", "mismatch", "mis", "spu", "non"]
 MATCHING_TYPES = ["correct", "partial", "incorrect", "missing", "spurious"]
 
 
-def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, model, num_experiment):
+def model_evaluation(dataset, sample_num, mode, labels_version, scenario, model, num_experiment):
     """evaluate three approaches with num examples and store the result in results folder
     dataset: name of the dataset
     sample_num: number of samples to be evaluated
@@ -42,47 +42,43 @@ def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, mod
     # load data (std_prediction and std_gt) from the most recent output files, raise exception if not enough examples
     print("load data dict")
     all_entries = []
-    intent_entries, slot_entries = [], []
     for i in range(num_experiment):
         loaded_data_dict = load_data_from_latest_model(dataset, sample_num, model)
         kv_pairs_dict = process_data_to_kv_pairs(loaded_data_dict)
 
-        if bylabel:
-            print("eval by label, evaluate slots")
-            # slot labels
+        if mode == "intent":
+            intents = get_intents_dict(dataset, labels_version, scenario).keys()
+            i_entries = evaluate_models_by_intents(kv_pairs_dict, intents)
+            all_entries = all_entries + i_entries
+        elif mode == "slot":
             labels = get_labels_dict(dataset, labels_version, scenario).keys()
             s_entries = evaluate_models_by_labels(kv_pairs_dict, labels)
-            slot_entries = slot_entries + s_entries
-            print("eval by label, evaluate slots")
-            intents = get_intents_dict(dataset, labels_version, scenario).keys()
-            print(intents)
-            i_entries = evaluate_models_by_intents(kv_pairs_dict, intents)
-            intent_entries = intent_entries + i_entries
+            all_entries = all_entries + s_entries
         else:
-            print("eval by model")
             # calculate metrics of all labels in the sample
             entries = evaluate_models(kv_pairs_dict)
             all_entries = all_entries + entries
 
     # save to file
-    if bylabel:
+    if mode == "intent":
         # save intent and slot to separate files
-        intent_file = get_file_name("intent", dataset, labels_version, sample_num, model, num_experiment)
+        intent_file = get_file_name("intent", dataset, labels_version, sample_num, model, num_experiment, scenario)
         f = open(intent_file, 'w+')
         # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
-        header = list(intent_entries[0].keys())
-        df = pd.DataFrame(intent_entries, columns=header)
+        header = list(all_entries[0].keys())
+        df = pd.DataFrame(all_entries, columns=header)
         df.to_csv(f)
         f.close()
-        slot_file = get_file_name("slot", dataset, labels_version, sample_num, model, num_experiment)
+    elif mode == "slot":
+        slot_file = get_file_name("slot", dataset, labels_version, sample_num, model, num_experiment, scenario)
         f = open(slot_file, 'w+')
         # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
-        header = list(slot_entries[0].keys())
-        df = pd.DataFrame(slot_entries, columns=header)
+        header = list(all_entries[0].keys())
+        df = pd.DataFrame(all_entries, columns=header)
         df.to_csv(f)
         f.close()
     else:
-        file = get_file_name("bymodel", dataset, labels_version, sample_num, model, num_experiment)
+        file = get_file_name("bymodel", dataset, labels_version, sample_num, model, num_experiment, scenario)
         f = open(file, 'w+')
         # header = ["model_name", "label_name", "num", "correct", "partial", "incorrect", "missing", "spurious"]
         header = list(all_entries[0].keys())
@@ -91,9 +87,10 @@ def model_evaluation(dataset, sample_num, bylabel, labels_version, scenario, mod
         f.close()
 
 
-def get_file_name(type, dataset, labels_version, sample_num, model, num_experiment):
+def get_file_name(type, dataset, labels_version, sample_num, model, num_experiment, scenario):
     file_index = 0
-    folder_name = "evaluation/" + model + "/" + dataset + "/" + type + "/e" + str(num_experiment)
+    scenario = "" if not scenario else scenario + "_"
+    folder_name = "evaluation/" + model + "/" + dataset + "/" + type + "/" + scenario + "e" + str(num_experiment)
     file_name = "lv" + labels_version + "_n" + str(sample_num) + "_i" + str(file_index) + ".csv"
     import os
     while os.path.exists(folder_name + file_name):
@@ -384,7 +381,11 @@ def get_matching_type_intent(gt_kv_pair, pd_kv_pair, intent):
     # get both intent, and compare the value -> cor, par, inc
     # p intent is empty mis
     gt_intent = gt_kv_pair["intent"]
-    p_intent = pd_kv_pair["intent"]
+    p_intent = ""
+    try:
+        p_intent = pd_kv_pair["intent"]
+    except:
+        print("[get_matching_type_intent] no p_intent in prediction")
     if intent in [gt_intent, p_intent]:
         result_of_comparison = 0
         if gt_intent and p_intent:  # if both contain the label, compare
@@ -503,5 +504,9 @@ def contains_intent(gt_kv_pair, pd_kv_pair, intent):
     if intent is None:
         return True
     else:
-        keys = [gt_kv_pair["intent"], pd_kv_pair["intent"]]
-        return intent in keys
+        try:
+            keys = [gt_kv_pair["intent"], pd_kv_pair["intent"]]
+            return intent in keys
+        except:
+            print("can not read intent from pd_kv_pairs")
+            return intent in [gt_kv_pair["intent"]]

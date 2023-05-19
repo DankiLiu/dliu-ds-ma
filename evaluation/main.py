@@ -7,70 +7,91 @@ from evaluation.metric_score import MetricByModel, MetricByLabel
 from evaluation.muc5 import MUC5
 
 
-def evaluate_intent(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
+def evaluate_intent(sample_num, dataset, labels_version, generate, scenario, num_experiments, model, model_version):
     if generate:
         # generate csv file for 5 muc metrics
-        model_evaluation(dataset, sample_num, True, labels_version, scenario, model, num_experiments)
+        model_evaluation(dataset, sample_num, "intent", labels_version, scenario, model, num_experiments)
     # get labels
     intents_dict = get_intents_dict(dataset, labels_version, scenario)
     intents = list(intents_dict.keys())
 
     # eval intents
-    intents_mucs = calculate_muc_by_labels(intents, dataset, model, "intent")
+    intents_mucs = calculate_muc_by_labels(intents, dataset, model, "intent", scenario=scenario)
 
-    intent_file_name = store_by_label("intent", dataset, labels_version, sample_num, num_experiments, model)
+    intent_file_name = store_by_label("intent", dataset, labels_version, sample_num,
+                                      num_experiments, model, model_version, scenario)
     write_dicts_to_file(intents_mucs, intent_file_name)
 
 
-def evaluate_slot(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
+def evaluate_slot(sample_num, dataset, labels_version, generate, scenario, num_experiments, model, model_version):
     if generate:
-        model_evaluation(dataset, sample_num, True, labels_version, scenario, model, num_experiments)
+        model_evaluation(dataset, sample_num, "slot", labels_version, scenario, model, num_experiments)
     # get labels
     slot_dict = get_labels_dict(dataset, labels_version, scenario)
     slots = list(slot_dict.keys())
 
     # eval intents
-    slots_mucs = calculate_muc_by_labels(slots, dataset, model, "slot")
+    slots_mucs = calculate_muc_by_labels(slots, dataset, model, "slot", scenario=scenario)
 
-    labels_file_name = store_by_label("slot", dataset, labels_version, sample_num, num_experiments, model)
+    labels_file_name = store_by_label("slot", dataset, labels_version, sample_num,
+                                      num_experiments, model, model_version, scenario)
     write_dicts_to_file(slots_mucs, labels_file_name)
 
 
-def store_by_label(label_type, dataset, labels_version, sample_num, num_experiments, model):
+def store_by_label(label_type, dataset, labels_version, sample_num, num_experiments, model, model_version, scenario):
     file_index = 0
+    model_version = "-".join(str(model_version).split('.'))
+    if not scenario:
+        scenario = ""
     if label_type == "intent":
-        folder_name = "evaluation/" + model + "/" + dataset + "/bylabel/intent_mucs_lv"
+        print(f"model: {model} : {type(model)}")
+        print(f"dataset: {dataset} : {type(dataset)}")
+        print(f"scenario: {scenario} : {type(scenario)}")
+        folder_name = "evaluation/" + model + "/" + dataset + "/bylabel/" + scenario + "_intent_mucs_lv"
     else:
-        folder_name = "evaluation/" + model + "/" + dataset + "/bylabel/label_mucs_lv"
+        folder_name = "evaluation/" + model + "/" + dataset + "/bylabel/" + scenario + "_label_mucs_lv"
     file_name = labels_version + "_n" + str(sample_num) \
-                + "e" + str(num_experiments) + "_i" + str(file_index) + ".csv"
+                + "_m" + model_version + "e" + str(num_experiments) + "_i" + str(file_index) + ".csv"
     import os
     while os.path.exists(folder_name + file_name):
         file_index += 1
         file_name = labels_version + "_n" + str(sample_num) \
-                    + "e" + str(num_experiments) + "_i" + str(file_index) + ".csv"
+                    + "_m" + model_version + "e" + str(num_experiments) + "_i" + str(file_index) + ".csv"
     print("[store_by_labels] file: ", folder_name + file_name)
     return folder_name + file_name
 
 
-def calculate_muc_by_labels(labels, dataset, model, mode):
+def calculate_muc_by_labels(labels, dataset, model, mode, scenario):
     mucs = []
     for label in labels:
-        metric = load_metric(dataset, mode=mode, label=label, model=model)
+        metric = load_metric(dataset, mode=mode, label=label, model=model, scenario=scenario)
         print(label)
-        metric.normalization()
-        muc = MUC5(metric.cor, metric.par, metric.inc, metric.mis, metric.spu)
-        muc_dict = {
-            "label": label,
-            "acc": muc.acc(),
-            "f": muc.f()
-        }
+        if metric.sample_num > 0:
+            metric.normalization()
+            muc = MUC5(metric.cor, metric.par, metric.inc, metric.mis, metric.spu)
+            muc_dict = {
+                "label": label,
+                "sample_num": metric.sample_num,
+                "acc": muc.acc(),
+                "f": muc.f(),
+                "precision": muc.precision,
+                "recall": muc.recall
+            }
+        else:
+            muc_dict = {
+                "label": label,
+                "sample_num": metric.sample_num,
+                "acc": 0,
+                "f": 0,
+                "precision": 0,
+                "recall": 0
+            }
         mucs.append(muc_dict)
     return mucs
 
 
-def load_metric(dataset, mode, model, label=None):
-    latest_file = get_latest_files(dataset, mode, model)
+def load_metric(dataset, mode, model, scenario, label=None):
+    latest_file = get_latest_files(dataset, mode, model, scenario)
     if mode == "intent":
         metric = MetricByLabel.create_data_from_file(model_name=model, label_name=label, path=latest_file)
     elif mode == "slot":
@@ -82,42 +103,48 @@ def load_metric(dataset, mode, model, label=None):
     return metric
 
 
-def evaluate_bymodel(sample_num, dataset, labels_version, generate, scenario, num_experiments, model):
+def evaluate_bymodel(sample_num, dataset, labels_version, generate, scenario, num_experiments, model, model_version):
     # if file not exist, do model_evaluation
     # evaluate model and store the metrics under evaluation folder
     if generate:
-        model_evaluation(dataset, sample_num, False, labels_version, scenario, model, num_experiments)
-    metric = load_metric(dataset, mode="bymodel", model=model)
+        model_evaluation(dataset, sample_num, "bymodel", labels_version, scenario, model, num_experiments)
+    metric = load_metric(dataset, mode="bymodel", model=model, scenario=scenario)
     muc = MUC5(metric.cor, metric.par, metric.inc, metric.mis, metric.spu)
     print(f"model {metric.model_name}: \nacc {muc.acc()}, f {muc.f()}")
     # muc_dict[metric.model_name] = muc
     muc_dict = {
         "model": metric.model_name,
         "acc": muc.acc(),
-        "f": muc.f()
+        "f": muc.f(),
+        "precision": muc.precision,
+        "recall": muc.recall
     }
 
-    file_name = store_by_model(dataset, labels_version, sample_num, num_experiments, model)
+    file_name = store_by_model(dataset, labels_version, sample_num, num_experiments, model, model_version, scenario)
     write_dicts_to_file([muc_dict], file_name)
 
 
-def store_by_model(dataset, labels_version, sample_num, num_experiments, model):
+def store_by_model(dataset, labels_version, sample_num, num_experiments, model, model_version, scenario):
+    model_version = "-".join(str(model_version).split('.'))
     file_index = 0
-    folder_name = "evaluation/" + model + "/" + dataset + "/bymodel/mucs_lv"
+    scenario = "" if not scenario else scenario + "_"
+    folder_name = "evaluation/" + model + "/" + dataset + "/bymodel/" + scenario + "mucs_lv"
     file_name = labels_version + "_n" + str(sample_num) + "e" + str(num_experiments) \
-                + "_i" + str(file_index) + ".csv"
+                + "_m" + model_version + "_i" + str(file_index) + ".csv"
     import os
     while os.path.exists(folder_name + file_name):
         file_index += 1
         file_name = labels_version + "_n" + str(sample_num) + "e" + str(num_experiments) \
-                    + "_i" + str(file_index) + ".csv"
+                    + "_m" + model_version + "_i" + str(file_index) + ".csv"
     print("store by model file name: ", folder_name + file_name)
     return folder_name + file_name
 
 
-def get_latest_files(dataset, mode, model):
+def get_latest_files(dataset, mode, model, scenario):
     """get latest metrics files"""
     metrics_folder = "evaluation/" + model + "/" + dataset + "/" + mode + "/"
+    if scenario:
+        metrics_folder += scenario + "_"
     # read metrics file and calculate acc and f1
     import glob, os
     list_of_files = glob.glob(metrics_folder + 'e*.csv')

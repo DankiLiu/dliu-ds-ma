@@ -16,7 +16,7 @@ if not API_KEY:
     exit()
 openai.api_key = API_KEY
 
-
+"""
 def GPT3_Completion(prompt, sentences):
     responses = []
     print(prompt)
@@ -32,7 +32,7 @@ def GPT3_Completion(prompt, sentences):
     return responses
 
 
-def zero_shot(prompt, sentences: List, model_engine):
+def zero_shot(prompt, sentences: List, model_engine, task):
     GPT3_Completion(prompt, sentences)
     results = []
     # gpt3 access limit 60 times per minute
@@ -52,7 +52,7 @@ def zero_shot(prompt, sentences: List, model_engine):
     return results
 
 
-def one_shot(prompt, sentences: List, exp_texts, exp_gts: List, model_engine):
+def one_shot(prompt, sentences: List, exp_texts, exp_gts: List, model_engine, config):
     # should be one example for each sentence
     assert len(sentences) == len(exp_texts)
     print(f"one-shot predicting for {len(sentences)} tests")
@@ -60,7 +60,7 @@ def one_shot(prompt, sentences: List, exp_texts, exp_gts: List, model_engine):
     # gpt3 access limit 60 times per minute
     for i in range(len(sentences)):
         time.sleep(2.0)
-        prompt_i = construct_oneshot_prompt(prompt, exp_texts[i], exp_gts[i], sentences[i])
+        prompt_i = construct_oneshot_prompt(prompt, exp_texts[i], exp_gts[i], sentences[i], withkey)
         try:
             response = openai.Completion.create(engine=model_engine,
                                                 prompt=prompt_i,
@@ -72,14 +72,31 @@ def one_shot(prompt, sentences: List, exp_texts, exp_gts: List, model_engine):
             print(openai.error.RateLimitError.user_message)
             print(openai.error.RateLimitError.args)
     return results
+"""
 
 
-def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine):
+def one_shot_single(prompt, sentence, exp_text, exp_gt, model_engine, withkeys, dataset_info):
     """return the gpt3 response given prompt name, the input sentence and one example, model engine
     shows which gpt3 model is used
     one input sentence is given to produce output"""
     # todo: different prompt has different solution
-    prompt_i = construct_oneshot_prompt(prompt, exp_text, exp_gt, sentence)
+    prompt_i = construct_oneshot_prompt(prompt, exp_text, exp_gt, sentence, withkeys, dataset_info)
+    time.sleep(3.0)
+    response = openai.Completion.create(engine=model_engine,
+                                        prompt=prompt_i,
+                                        temperature=0,
+                                        max_tokens=256,
+                                        top_p=1.0)
+    return response["choices"][0]["text"]
+
+
+def zero_shot_single(prompt, sentence, model_engine, withkeys, dataset_info):
+    """return the gpt3 response given prompt name, the input sentence and one example, model engine
+    shows which gpt3 model is used
+    one input sentence is given to produce output"""
+    # todo: different prompt has different solution
+    prompt_i = construct_zeroshot_prompt(prompt, sentence, withkeys, dataset_info)
+    time.sleep(3.0)
     response = openai.Completion.create(engine=model_engine,
                                         prompt=prompt_i,
                                         temperature=0,
@@ -93,8 +110,10 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
     model_version: the self-defined model version number, described in model_version.json
     select==True: choose examples that is similar to given input text"""
     # load parameter
-    w_intent, prompt, model_name, select = get_gpt3_params(model_version)
+    prompt, model_name, select, withkeys, shuffle, zeroshot = get_gpt3_params(model_version)
     select = True if select == "True" else False
+    withkeys = True if withkeys == "True" else False
+    zeroshot = True if zeroshot == "True" else False
     # w_intent = True if w_intent == "True" else False
     if prompt is None:
         print(f"model v{model_version} not avaliable, run gpt3 model failed")
@@ -104,36 +123,53 @@ def gpt3jointslu(dataset, num, model_version, testing_file, output_path, labels_
     # load test examples
     labels, ts, std_gts = get_labels_ts_stdgts(testing_file=testing_file,
                                                num=num)
+    # starting = 0 if num < 0 else num
+    starting = 0
     num_examples = len(ts)
-    global exp_texts, exp_labels
-    print(f"    [gpt3jointslu] testing {len(ts)} examples ---")
-    # load examples if choose==True
-    examples = load_examples(dataset=dataset,
-                             labels_version=labels_version,
-                             scenario=scenario)
-    if select or select == "True":
-        # For each sentence, find an example by similarity
-        print("    [gpt3jointslu]%%choose example by similarity")
-        examples = get_example_by_sim(ts, examples)
-        exp_texts, exp_gts = construct_oneshot_example(examples)
+    print(f"[gpt3jointslu] starting at index {starting}/{num_examples}")
+    dataset_info = {"dataset": dataset,
+                    "labels_version": labels_version,
+                    "scenario": scenario}
+    if zeroshot:
+        for i in range(num_examples):
+            response = zero_shot_single(prompt, ts[i], model_name, withkeys, dataset_info)
+            result = {
+                "num": starting + i,
+                "prompt": prompt,
+                "text": ts[i],
+                "labels": labels[i],
+                "prediction": response,
+                "std_gt": std_gts[i]
+            }
+            print(f"{starting + i}/{num_examples} th result: {result}")
+            append_to_json(file_path=output_path, new_data=result)
     else:
-        print("    [gpt3jointslu]%%choose random examples")
-        # choose random example for each text
-        # todo: here should pick from selected examples or from all training data?
-        idxs = [randint(0, len(examples) - 1) for _ in range(len(ts))]
-        exp_texts, exp_gts = construct_oneshot_example([examples[i] for i in idxs])
-    for i in range(num_examples):
-        response = one_shot_single(prompt, ts[i], exp_texts[i], exp_gts[i], model_name)
-        result = {
-            "num": i,
-            "prompt": prompt,
-            "exp_text": exp_texts[i],
-            "exp_gt": exp_gts[i],
-            "text": ts[i],
-            "labels": labels[i],
-            "prediction": response,
-            "std_gt": std_gts[i]
-        }
-        print(f"{i}th result: {result}")
-        append_to_json(file_path=output_path, new_data=result)
-        time.sleep(1.0)
+        examples = load_examples(dataset=dataset,
+                                 labels_version=labels_version,
+                                 scenario=scenario)
+        if select or select == "True":
+            # For each sentence, find an example by similarity
+            print("    [gpt3jointslu]%%choose example by similarity")
+            examples = get_example_by_sim(ts, examples)
+            exp_texts, exp_gts = construct_oneshot_example(examples)
+        else:
+            print("    [gpt3jointslu]%%choose random examples")
+            # choose random example for each text
+            # todo: here should pick from selected examples or from all training data?
+            idxs = [randint(0, len(examples) - 1) for _ in range(len(ts))]
+            exp_texts, exp_gts = construct_oneshot_example([examples[i] for i in idxs])
+
+        for i in range(num_examples):
+            response = one_shot_single(prompt, ts[i], exp_texts[i], exp_gts[i], model_name, withkeys, dataset_info)
+            result = {
+                "num": starting + i,
+                "prompt": prompt,
+                "exp_text": exp_texts[i],
+                "exp_gt": exp_gts[i],
+                "text": ts[i],
+                "labels": labels[i],
+                "prediction": response,
+                "std_gt": std_gts[i]
+            }
+            print(f"{starting + i}/{num_examples}th result: {result}")
+            append_to_json(file_path=output_path, new_data=result)

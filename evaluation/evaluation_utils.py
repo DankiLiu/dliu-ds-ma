@@ -8,7 +8,7 @@ from random import shuffle, randint
 from typing import List
 from util import read_keys_from_json
 import pandas as pd
-
+import re
 
 def get_std_gt(text: List, labels: List, intent):
     """
@@ -73,11 +73,10 @@ def process_data_to_kv_pairs(loaded_data_dict):
     """given loaded data dictionary, return key-value pairs"""
     # todo: this function can use yield to be more efficient
     kv_pairs_dict = {}
-    print(loaded_data_dict)
     for model_name, data in loaded_data_dict.items():
         std_gts, predictions = data["std_gts"], data["predictions"]
-        gt_kv_pairs = [str_to_kv_pairs(string) for string in std_gts]
-        pd_kv_pairs = [str_to_kv_pairs(string) for string in predictions]
+        gt_kv_pairs = [str_to_kv_pairs(string, "gt") for string in std_gts]
+        pd_kv_pairs = [str_to_kv_pairs(string, "gt") for string in predictions]
         kv_pairs_dict[model_name] = {
             "gt_kv_pairs": gt_kv_pairs,
             "pd_kv_pairs": pd_kv_pairs
@@ -85,23 +84,50 @@ def process_data_to_kv_pairs(loaded_data_dict):
     return kv_pairs_dict
 
 
-def str_to_kv_pairs(string):
+def str_contains_num_or_letter(str):
+    for c in str:
+        if c.isalpha() or c.isnumeric():
+            return True
+    return False
+
+
+def str_to_kv_pairs(string, mode):
     """given a prediction or std_gt (str), return a dictionary contains label-phrase pairs"""
     kvs = {}
     # remove extra characters from string
-    string = string.strip().replace('\n', '')
-    kv_pairs = string.split(';')
-    for kv in kv_pairs:
-        if kv == '':
-            continue
-        pair = kv.split(':')
-        try:
-            if pair[0].strip() != '' or pair[1] != '':
-                kvs[pair[0].strip()] = pair[1].strip()
-                # print(f"key {pair[0].strip()} > value {kvs[pair[0].strip()]}")
-        except IndexError:
-            print(f"KeyValue Pair Index out of range. {pair}")
-    return kvs
+    string = string.lower()
+    if mode == "gpt3v1":
+        string = string.strip()
+        kv_pairs = string.split('\n')
+        for kv in kv_pairs:
+            # if the string is empty or contains no number and letter, skip
+            if kv == '' or not str_contains_num_or_letter(kv):
+                continue
+            pair = kv.split(':')
+            try:
+                pair[0] = re.sub('[\W_]+', ' ', pair[0])
+                pair[1] = re.sub('[\W_]+', ' ', pair[1])
+                if pair[0].strip() != '' or pair[1] != '':
+                    kvs[pair[0].strip()] = pair[1].strip()
+                    # print(f"key {pair[0].strip()} > value {kvs[pair[0].strip()]}")
+            except IndexError:
+                print(f"KeyValue Pair Index out of range. {pair}")
+        return kvs
+    else:   # ground truth
+        string = string.strip().replace('\n', '')
+        kv_pairs = string.split(';')
+        for kv in kv_pairs:
+            if kv == '':
+                continue
+            pair = kv.split(':')
+            try:
+                if pair[0].strip() != '' or pair[1] != '':
+                    kvs[pair[0].strip()] = pair[1].strip()
+                    # print(f"key {pair[0].strip()} > value {kvs[pair[0].strip()]}")
+            except IndexError:
+                print(f"KeyValue Pair Index out of range. {pair}")
+        return kvs
+
 
 
 def merge_data(model_name, label_name):

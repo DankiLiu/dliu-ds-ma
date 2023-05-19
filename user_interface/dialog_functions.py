@@ -1,4 +1,4 @@
-from parse.parsing import corenlp_parse
+from parse.parsing_util import corenlp_parse
 
 
 def update_parse(text, window):
