@@ -25,7 +25,7 @@ def write_params(model, name):
 
 
 class Config:
-    def __init__(self, from_ckpt, classifier_only, auto_lr, old_task, few_shot_num, early_stopping):
+    def __init__(self, from_ckpt, classifier_only, auto_lr, old_task, few_shot_num, early_stopping, epoch, auto_batch_size):
         self.from_ckpt = from_ckpt
         self.classifier_only = classifier_only
         self.auto_lr = auto_lr
@@ -34,6 +34,8 @@ class Config:
         self.few_shot_num = few_shot_num
         self.few_shot = True if few_shot_num > 0 else False
         self.early_stopping = early_stopping
+        self.epoch = epoch
+        self.auto_batch_size = auto_batch_size
 
 
 def train_multi_task(model_version, dataset, labels_version, scenario, config):
@@ -68,7 +70,7 @@ def train_multi_task(model_version, dataset, labels_version, scenario, config):
     # log folder naming
     print("set log files")
     log_folder = "pretrain/mt_from_v" + str(model_version) if config.from_ckpt \
-        else log_folder = "pretrain/mt_v" + str(model_version)
+        else "pretrain/mt_v" + str(model_version)
     name = dataset + "_lv" + str(labels_version)
     if scenario:
         name += "_" + scenario
@@ -82,16 +84,19 @@ def train_multi_task(model_version, dataset, labels_version, scenario, config):
     logger = TensorBoardLogger(log_folder, name=name)
 
     # todo: print some info about the loaded model
-    early_stopping = [EarlyStopping(monitor="val_loss", mode="min")] if config.early_stopping else []
-    if config.auto_lr:
-        trainer = Trainer(auto_lr_find=True,
-                          max_epochs=3,
-                          logger=logger,
-                          callbacks=early_stopping,
-                          accelerator="gpu",
-                          devices=1)
-    else:
-        trainer = Trainer(max_epochs=1, logger=logger, accelerator="gpu", devices=1)
+    early_stopping = [EarlyStopping(monitor="val loss", mode="min")] if config.early_stopping else []
+    auto_batch_size = config.auto_batch_size
+    auto_lr = config.auto_lr
+
+    trainer = Trainer(auto_lr_find=auto_lr,
+                      auto_scale_batch_size=auto_batch_size,
+                      max_epochs=config.epoch,
+                      logger=logger,
+                      callbacks=early_stopping,
+                      accelerator="gpu",
+                      devices=1,
+                      check_val_every_n_epoch=1)
+
 
     trainer.fit(model, datamodule=data_module)
     write_params(model, "after_fit")
@@ -121,7 +126,7 @@ def define_tokenizer():
         cls_token='BOS')
 
 
-def mt_testing(dataset, model_version, labels_version, output_file, scenario, few_shot_num):
+def mt_testing(dataset, model_version, labels_version, output_file, scenario):
     # define tasks (tok and seq classification)
     tasks = define_tasks(dataset, labels_version, scenario)
     # init tokenizer
