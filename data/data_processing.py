@@ -560,8 +560,13 @@ def get_samples(file_path, model_name, num, do_shuffle):
     if do_shuffle:
         shuffle(data)
     intent = [i["intent"] for i in data[0:length]]
-
-    if model_name == "gpt3" or model_name == "parsing":
+    if model_name == "gpt3":
+        # remove BOS and EOS
+        # intent = [i["intent"] for i in data[:]]
+        text = [i["text"][1: len(i["text"]) - 1] for i in data[0:length]]
+        labels = [i["labels"][1: len(i["text"]) - 1] for i in data[0:length]]
+        return text, labels, intent
+    elif model_name == "parsing":
         # remove BOS and EOS
         text = [i["text"][1: len(i["text"]) - 1] for i in data[0:length]]
         labels = [i["labels"][1: len(i["text"]) - 1] for i in data[0:length]]
