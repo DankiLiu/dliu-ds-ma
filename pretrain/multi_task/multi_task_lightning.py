@@ -41,12 +41,25 @@ class LitBertMultiTask(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         input_ids, intents, labels = batch["input_ids"], batch["intents"], batch["labels"]
-        task_ids = range(len(self.tasks))
-        loss, logits, outputs = self.multi_task_bert.forward(input_ids=input_ids,
-                                                             labels=[intents, labels],
-                                                             task_ids=task_ids)
-        self.log("val_loss", loss)
-        return {"loss": loss, "logits": logits, "output": outputs}
+
+        annotations = []
+        task_ids = []
+        for task in self.tasks:
+            task_ids.append(task.id)
+            if task.type == "tok_classification":
+                annotations.append(labels)
+            if task.type == "seq_classification":
+                annotations.append(intents)
+
+        val_loss, logits, outputs = self.multi_task_bert.forward(input_ids, annotations, task_ids)
+
+        self.log("val loss", val_loss)
+        return val_loss
+
+    def validation_epoch_end(self, outputs):
+        avg_loss = torch.stack(outputs).mean()
+        log = {'val loss': avg_loss}
+        return {'val loss': avg_loss, 'log': log}
 
     def test_step(self, batch, batch_idx):
         pass
